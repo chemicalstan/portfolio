@@ -1291,7 +1291,7 @@ header .logo a {
  * ------------------------------------------------------------------- 
  */
 #intro {
-	background: #151515 url(../images/intro-bg.jpeg) no-repeat center bottom;
+	background: #151515 url(../images/intro-bg1.jpg) no-repeat center bottom;
 	-webkit-background-size: cover;
 	-moz-background-size: cover;
 	background-size: cover;
@@ -1310,7 +1310,7 @@ header .logo a {
 	width: 100%;
 	height: 100%;
 	background: #111111;
-	opacity: .5;
+	opacity: .85;
 }
 
 .intro-content {
