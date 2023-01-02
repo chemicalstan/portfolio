@@ -1291,7 +1291,7 @@ header .logo a {
  * ------------------------------------------------------------------- 
  */
 #intro {
-	background: #151515 url(../images/intro-bg.jpg) no-repeat center bottom;
+	background: #151515 url(../images/intro-bg.jpeg) no-repeat center bottom;
 	-webkit-background-size: cover;
 	-moz-background-size: cover;
 	background-size: cover;
@@ -1454,7 +1454,6 @@ header .logo a {
 }
 @media only screen and (max-width:600px) {
 	#intro {
-		background: #151515 url(../images/intro-bg2.jpeg) no-repeat center bottom;
 		min-height: 600px;
 	}
 	.intro-content h1 {
