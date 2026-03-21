@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ML/AI FAQ - Common Confusions Clarified</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #fafafa;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+    nav {
+      background: #1a1a2e;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    nav a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: #fff; }
+    nav a.active { color: #fff; font-weight: 500; }
+    nav .brand {
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      margin-right: auto;
+    }
+    #root {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">ML Reference Table</span>
+    <a href="./index.html">World Map</a>
+    <a href="./faq.html" class="active">FAQ</a>
+    <a href="../index.html">&larr; Back to Portfolio</a>
+  </nav>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+  <script>
+    var useState = React.useState, useMemo = React.useMemo;
+    var e = React.createElement;
+
+    var CATEGORIES = {
+      "fundamentals": {label: "Fundamental Concepts", color: "#534AB7", bg: "#EEEDFE"},
+      "terminology": {label: "Terminology & Taxonomy", color: "#0F6E56", bg: "#E1F5EE"},
+      "architecture": {label: "Architectures & Design", color: "#185FA5", bg: "#E6F1FB"},
+      "models": {label: "Models & Algorithms", color: "#993C1D", bg: "#FAECE7"},
+      "practical": {label: "Practical / When to Use", color: "#854F0B", bg: "#FAEEDA"},
+    };
+
+    var FAQ_DATA = [
+      // === FUNDAMENTAL CONCEPTS ===
+      {
+        id: 1,
+        category: "fundamentals",
+        question: "What is the difference between AI, ML, deep learning, and neural networks?",
+        answer: "These terms nest like Russian dolls:\n\n" +
+          "AI (Artificial Intelligence) is the broadest umbrella \u2014 any system that performs tasks normally requiring human intelligence.\n\n" +
+          "ML (Machine Learning) is a subset of AI where systems learn from data instead of being explicitly programmed. All ML is AI, but not all AI is ML (expert systems, search algorithms are AI but not ML).\n\n" +
+          "Neural Networks are a type of ML model made of connected layers of nodes. They can be shallow (1-2 layers) or deep.\n\n" +
+          "Deep Learning is neural networks with many layers (3+). The 'deep' refers to the depth of layers, not profundity.\n\n" +
+          "The nesting: AI > ML > Neural Networks > Deep Learning > [Transformer, CNN, RNN, ...] > [GPT-4, BERT, ResNet, ...]"
+      },
+      {
+        id: 2,
+        category: "fundamentals",
+        question: "Is accuracy the same as loss function?",
+        answer: "No \u2014 they\u2019re related but different:\n\n" +
+          "Loss function (also called cost function or objective function) is what the model optimizes during training. It measures how wrong the predictions are. The model\u2019s goal is to minimize this number. Examples: cross-entropy loss, mean squared error. The loss function must be mathematically differentiable so gradient descent can work.\n\n" +
+          "Accuracy is what you care about \u2014 the percentage of predictions the model got right. It\u2019s an evaluation metric for humans. The model doesn\u2019t directly optimize for it because accuracy isn\u2019t differentiable (it\u2019s a step function).\n\n" +
+          "Think of it this way: loss function = the model\u2019s internal compass during training. Accuracy = the scoreboard you check after training.\n\n" +
+          "They usually move together (loss down = accuracy up), but not always. Also, accuracy can be misleading \u2014 if 95% of data is 'not fraud,' a model that always says 'not fraud' gets 95% accuracy but is useless. That\u2019s why practitioners also use precision, recall, F1 score, and AUC-ROC."
+      },
+
+      // === TERMINOLOGY & TAXONOMY ===
+      {
+        id: 3,
+        category: "terminology",
+        question: "Are 'AI model', 'ML model', and 'ML algorithm' all the same thing?",
+        answer: "Not exactly \u2014 they overlap in casual conversation but mean different things:\n\n" +
+          "ML algorithm is the recipe \u2014 the mathematical procedure used to learn from data. Think of it like a cooking technique: gradient descent, backpropagation, k-means iteration. The algorithm is the instructions, not the result.\n\n" +
+          "ML model is the finished dish \u2014 what you get after running an algorithm on a specific dataset. The model contains the learned patterns (weights, parameters). You can save it, ship it, and make predictions. So: algorithm + training data \u2192 model.\n\n" +
+          "AI model is the loosest term \u2014 any model under the AI umbrella. Every ML model is an AI model, but 'AI model' could also refer to non-ML systems. In practice (2025-26), people saying 'AI model' almost always mean an ML model.\n\n" +
+          "Real example: the Transformer architecture defines the structure, backpropagation is the algorithm used during training, and Claude is the resulting model."
+      },
+      {
+        id: 4,
+        category: "terminology",
+        question: "What is the difference between architecture, model, and algorithm?",
+        answer: "This is one of the most important distinctions in ML:\n\n" +
+          "Architecture is the blueprint \u2014 the structural design specifying how layers are connected, what operations happen where, and how data flows. Like a building\u2019s floor plan. You can\u2019t 'run' an architecture. Examples: Transformer, CNN, RNN, LSTM, GAN, VAE, GNN.\n\n" +
+          "Algorithm is the procedure \u2014 the mathematical recipe for training or optimization. How models learn. Examples: Backpropagation, gradient descent, Adam optimizer, attention mechanism, Bayes\u2019 theorem.\n\n" +
+          "Model is the finished product \u2014 architecture + specific sizes + learned weights from training data. This is what you deploy. Examples: GPT-4, BERT, ResNet-50, XGBoost.\n\n" +
+          "The formula: Architecture + Algorithm + Training Data = Model\n\n" +
+          "Analogy: Architecture = house blueprint. Algorithm = construction techniques. Model = the actual house you built and can live in."
+      },
+
+      // === ARCHITECTURES & DESIGN ===
+      {
+        id: 5,
+        category: "architecture",
+        question: "Is the Transformer a model, algorithm, or architecture?",
+        answer: "The Transformer is an architecture \u2014 a structural blueprint.\n\n" +
+          "It defines how data flows: self-attention layers, positional encoding, residual connections, and layer normalization. But you can\u2019t \u2018run\u2019 the Transformer architecture itself \u2014 you need to choose specific sizes, train it on data using algorithms, and produce a model.\n\n" +
+          "Models built on the Transformer architecture include: GPT-4 (decoder-only), BERT (encoder-only), T5 (encoder-decoder), Claude, Gemini, Llama, Whisper, and even AlphaFold.\n\n" +
+          "Algorithms used to train Transformer-based models include: backpropagation, Adam optimizer, RLHF (PPO), masked language modeling, next-token prediction."
+      },
+      {
+        id: 6,
+        category: "architecture",
+        question: "Can any algorithm use any architecture? What determines which to pair?",
+        answer: "Not quite \u2014 architecture and algorithm are semi-independent choices but not fully interchangeable. Think of it like: a gas engine can power a sedan or a truck, but you can\u2019t put a gas engine in a sailboat.\n\n" +
+          "The key constraints:\n\n" +
+          "1. Backpropagation + gradient descent work with ANY differentiable architecture (CNN, RNN, Transformer, GAN, VAE, MLP). That\u2019s why backprop is so dominant.\n\n" +
+          "2. Q-learning (RL) requires a reward signal and environment interaction \u2014 you can\u2019t just drop it in to train BERT on text classification.\n\n" +
+          "3. Bayes\u2019 theorem requires computing priors \u2014 it works for Naive Bayes but doesn\u2019t apply to training a Transformer.\n\n" +
+          "The real dependency chain: Your GOAL determines the learning PARADIGM (generate text? classify images?). The paradigm narrows compatible ARCHITECTURES. The architecture narrows compatible ALGORITHMS. Then data + compute determine model size.\n\n" +
+          "Neither architecture nor algorithm fully determines the other \u2014 the goal sits above both and constrains the choices downward."
+      },
+      {
+        id: 7,
+        category: "architecture",
+        question: "Why does BERT use the specific architecture and algorithms it does?",
+        answer: "Every BERT design decision was driven by the goal of bidirectional text understanding:\n\n" +
+          "Architecture choice \u2014 Transformer encoder (not decoder, not RNN): Self-attention lets every token see every other token in both directions. An RNN reads left-to-right only. A decoder Transformer uses a causal mask blocking future tokens. The encoder has no mask = full bidirectional attention.\n\n" +
+          "Training algorithm \u2014 Masked Language Modeling (MLM): Randomly hide 15% of words, predict from context. This forces bidirectional understanding. GPT\u2019s autoregressive prediction (next token) is inherently left-to-right only, so it wouldn\u2019t achieve BERT\u2019s goal.\n\n" +
+          "Optimization \u2014 Backpropagation + Adam: The universal training combo for any differentiable neural network. No real alternative for this class of model.\n\n" +
+          "The architecture was chosen by the goal. The training algorithm was chosen by the architecture\u2019s capability."
+      },
+      {
+        id: 8,
+        category: "architecture",
+        question: "What happens if you keep everything the same but change the architecture or algorithm?",
+        answer: "This actually maps to real research experiments:\n\n" +
+          "Keep BERT\u2019s data + algorithms, change architecture to RNN: This is essentially ELMo (2018). It worked, but worse \u2014 RNNs process sequentially so 'bidirectional' is two separate passes stitched together, not true simultaneous attention. Also much slower.\n\n" +
+          "Keep BERT\u2019s data + algorithms, change to decoder-only Transformer: You literally get GPT. Same building blocks, but the causal mask means each token only sees previous tokens. Excellent at generating text but worse at understanding tasks.\n\n" +
+          "Keep BERT\u2019s architecture + data, change the training algorithm: This happened! RoBERTa (2019) kept BERT\u2019s exact architecture but removed Next Sentence Prediction, used dynamic masking, and trained longer. Result: significantly better performance, same architecture. This shows algorithm changes within the same architecture can matter enormously.\n\n" +
+          "More drastic swap \u2014 train BERT with RL instead of MLM: Doesn\u2019t make sense. BERT fills in blanks, it doesn\u2019t generate sequences a human can rate. RLHF works on GPT-style models because there\u2019s a generated output to evaluate."
+      },
+      {
+        id: 9,
+        category: "architecture",
+        question: "What were the major architectures before and after Transformers?",
+        answer: "Before Transformers (pre-2017):\n" +
+          "Perceptron (1958) \u2192 MLP (1986) \u2192 RNN (1990) \u2192 CNN/LeNet (1998) \u2192 LSTM (1997) \u2192 GAN (2014) \u2192 VAE (2014) \u2192 ResNet (2015)\n\n" +
+          "The Transformer era (2017+):\n" +
+          "Transformer (2017) \u2192 BERT/GPT (2018) \u2192 ViT (2020) \u2192 Diffusion/DDPM (2020) \u2192 CLIP (2021) \u2192 MoE revival (2023) \u2192 Mamba/SSM (2023) \u2192 Hybrid Mamba-Transformer (2024-25)\n\n" +
+          "The Transformer didn\u2019t kill all prior architectures \u2014 CNNs are still preferred for edge/mobile deployment, LSTMs for streaming/real-time, and GNNs for graph data. But the Transformer is the dominant architecture for language, and increasingly for vision and multimodal tasks."
+      },
+
+      // === MODELS & ALGORITHMS ===
+      {
+        id: 10,
+        category: "models",
+        question: "What is the beginner-friendly difference between CNN and RNN?",
+        answer: "CNN (Convolutional Neural Network) thinks in SPACE: Imagine a magnifying glass sliding across a photo. At each position, it asks 'what pattern do I see here?' First layer finds edges, next finds shapes, deeper layers find whole objects. It sees the entire image at once and scans for spatial patterns. Great for images.\n\n" +
+          "RNN (Recurrent Neural Network) thinks in TIME: Imagine reading a sentence word by word with a notepad. Read 'The', jot a note. Read 'cat', update notes. Read 'sat', update again. The notepad is the 'hidden state' \u2014 a running summary. Great for sequences where order matters.\n\n" +
+          "RNN\u2019s key weakness: by word #500, notes about word #1 are basically gone (vanishing gradient). LSTM added 'what to remember/forget' gates to fix this. Transformers solved it completely by letting every word see every other word directly.\n\n" +
+          "One sentence to remember: CNN = a camera scanning a scene. RNN = a person reading a book one page at a time."
+      },
+      {
+        id: 11,
+        category: "models",
+        question: "What is a 'neural network' vs 'deep learning' \u2014 are they synonyms?",
+        answer: "Not technically, though they\u2019re used interchangeably in casual conversation.\n\n" +
+          "A neural network with just 1-2 hidden layers is a 'shallow' neural network. It\u2019s still a neural network, but it\u2019s NOT deep learning.\n\n" +
+          "Deep learning specifically means neural networks with MANY layers (typically 3+). The 'deep' refers to the depth of layers.\n\n" +
+          "So: Deep Learning is a SUBSET of Neural Networks. All deep learning uses neural networks, but not all neural networks are deep.\n\n" +
+          "In practice, almost every neural network people build today has many layers, so the terms overlap ~95% of the time. But in a technical interview or paper, the distinction matters."
+      },
+
+      // === PRACTICAL ===
+      {
+        id: 12,
+        category: "practical",
+        question: "NLP vs LLM vs Transformer \u2014 what\u2019s the relationship?",
+        answer: "These are three different types of things:\n\n" +
+          "NLP (Natural Language Processing) is a FIELD/DOMAIN \u2014 the problem of making computers understand language. It\u2019s not a model or architecture. It used rules in the 1990s, used RNNs in 2015, and uses Transformers today.\n\n" +
+          "Transformer is an ARCHITECTURE \u2014 the blueprint that powers modern NLP. It\u2019s also used for vision, audio, protein folding, and more.\n\n" +
+          "LLM (Large Language Model) is a specific type of MODEL \u2014 a very large Transformer trained on massive text data. GPT-4, Claude, Gemini are LLMs.\n\n" +
+          "The relationship: NLP (the field) currently uses Transformer (the architecture) to build LLMs (the models)."
+      },
+      {
+        id: 13,
+        category: "practical",
+        question: "What is 'Generative AI' and how does it relate to LLMs?",
+        answer: "Generative AI is a MARKETING UMBRELLA term, not a technical category. It covers any AI that produces new content:\n\n" +
+          "\u2022 Text generation: LLMs (GPT-4, Claude, Gemini) \u2014 Transformer architecture\n" +
+          "\u2022 Image generation: Stable Diffusion, DALL-E, Midjourney \u2014 Diffusion architecture\n" +
+          "\u2022 Audio/music: MusicGen, Suno \u2014 various architectures\n" +
+          "\u2022 Video: Sora, Runway \u2014 Diffusion + Transformer\n" +
+          "\u2022 Code: GitHub Copilot \u2014 LLM (GPT-based)\n\n" +
+          "So LLMs are the most prominent subset of GenAI, but GenAI is broader. When someone says 'GenAI' they usually mean LLMs + image generators."
+      },
+      {
+        id: 14,
+        category: "practical",
+        question: "Which model should I use for my problem?",
+        answer: "The practitioner\u2019s decision ladder:\n\n" +
+          "Tabular data (<10K rows): TabPFN, Logistic Regression, Random Forest. Avoid deep learning.\n" +
+          "Tabular data (10K-1M): LightGBM > XGBoost > CatBoost. These win most Kaggle competitions.\n" +
+          "Tabular data (>1M rows): LightGBM (fastest). Neural networks start competing.\n\n" +
+          "Images (limited data): Transfer learning with EfficientNet, ConvNeXt, or ResNet.\n" +
+          "Images (large scale): Vision Transformer (ViT), Swin Transformer, DINOv2.\n\n" +
+          "Text classification: Fine-tuned DeBERTa/RoBERTa (cheap) or LLM API (flexible).\n" +
+          "Text generation: GPT-class decoder LLM.\n\n" +
+          "Time series: ARIMA baseline + GBDTs with lag features. LSTM for streaming.\n" +
+          "Graph data: GCN or GAT via PyTorch Geometric.\n\n" +
+          "Rule of thumb: ALWAYS start simple, scale complexity only when measured improvement justifies it."
+      }
+    ];
+
+    function ChevronIcon(props) {
+      var open = props.open;
+      return e("svg", {
+        width: 20, height: 20, viewBox: "0 0 20 20", fill: "none",
+        style: {transition: "transform 0.3s ease", transform: open ? "rotate(180deg)" : "rotate(0deg)", flexShrink: 0}
+      },
+        e("path", {d: "M5 7.5L10 12.5L15 7.5", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round"})
+      );
+    }
+
+    function FAQItem(props) {
+      var item = props.item, isOpen = props.isOpen, onToggle = props.onToggle;
+      var cat = CATEGORIES[item.category];
+
+      return e("div", {
+        style: {
+          marginBottom: 8,
+          borderRadius: 12,
+          border: isOpen ? "1.5px solid " + cat.color : "1px solid #e5e5e5",
+          background: isOpen ? cat.bg + "44" : "#fff",
+          overflow: "hidden",
+          transition: "all 0.2s ease"
+        }
+      },
+        e("button", {
+          onClick: onToggle,
+          style: {
+            width: "100%", display: "flex", alignItems: "flex-start", gap: 12,
+            padding: "16px 20px", background: "transparent", border: "none",
+            cursor: "pointer", textAlign: "left", color: "#1a1a2e"
+          }
+        },
+          e("span", {
+            style: {
+              fontSize: 10, fontWeight: 600, color: cat.color, background: cat.bg,
+              padding: "3px 8px", borderRadius: 6, whiteSpace: "nowrap", marginTop: 2
+            }
+          }, cat.label.split(" ")[0]),
+          e("span", {style: {flex: 1, fontSize: 15, fontWeight: 500, lineHeight: 1.4}}, item.question),
+          e(ChevronIcon, {open: isOpen})
+        ),
+        isOpen ? e("div", {
+          style: {
+            padding: "0 20px 20px 20px",
+            animation: "fadeSlideIn 0.3s ease"
+          }
+        },
+          e("div", {
+            style: {
+              background: "#fff", borderRadius: 10, padding: "16px 20px",
+              border: "1px solid " + cat.color + "33",
+              fontSize: 14, lineHeight: 1.75, color: "#333",
+              whiteSpace: "pre-line"
+            }
+          }, item.answer)
+        ) : null
+      );
+    }
+
+    function FAQApp() {
+      var _open = useState(null), openId = _open[0], setOpenId = _open[1];
+      var _search = useState(""), search = _search[0], setSearch = _search[1];
+      var _cat = useState("all"), catFilter = _cat[0], setCatFilter = _cat[1];
+
+      var filtered = useMemo(function () {
+        return FAQ_DATA.filter(function (item) {
+          if (catFilter !== "all" && item.category !== catFilter) return false;
+          if (search) {
+            var s = search.toLowerCase();
+            return item.question.toLowerCase().includes(s) || item.answer.toLowerCase().includes(s);
+          }
+          return true;
+        });
+      }, [search, catFilter]);
+
+      var counts = useMemo(function () {
+        var c = {all: FAQ_DATA.length};
+        Object.keys(CATEGORIES).forEach(function (k) {
+          c[k] = FAQ_DATA.filter(function (d) { return d.category === k; }).length;
+        });
+        return c;
+      }, []);
+
+      return e("div", {style: {maxWidth: 900, margin: "0 auto", padding: "8px 0"}},
+        e("style", null,
+          "@keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }"
+        ),
+
+        e("div", {style: {marginBottom: 20}},
+          e("h2", {style: {fontSize: 22, fontWeight: 600, margin: "0 0 4px", color: "#1a1a2e"}}, "ML / AI Frequently Asked Questions"),
+          e("p", {style: {fontSize: 13, color: "#888", margin: "0 0 16px"}},
+            FAQ_DATA.length + " questions covering the most common confusions in machine learning \u2014 click any question to reveal the answer"
+          ),
+
+          e("input", {
+            value: search, onChange: function (ev) { setSearch(ev.target.value); },
+            placeholder: "Search questions and answers...",
+            style: {
+              width: "100%", padding: "10px 14px", borderRadius: 10,
+              border: "1px solid #ddd", fontSize: 14, marginBottom: 12,
+              background: "#fff", color: "#333"
+            }
+          }),
+
+          e("div", {style: {display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8}},
+            [["all", "All", "#555", "#f0f0f0"]].concat(
+              Object.entries(CATEGORIES).map(function (en) {
+                return [en[0], en[1].label, en[1].color, en[1].bg];
+              })
+            ).map(function (arr) {
+              var key = arr[0], label = arr[1], color = arr[2], bg = arr[3];
+              var active = catFilter === key;
+              return e("button", {
+                key: key,
+                onClick: function () { setCatFilter(key); },
+                style: {
+                  padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer",
+                  border: active ? "none" : "1px solid " + color + "55",
+                  background: active ? color : "transparent",
+                  color: active ? "#fff" : color,
+                  transition: "all 0.2s"
+                }
+              }, label + " (" + (counts[key] || 0) + ")");
+            })
+          )
+        ),
+
+        filtered.length === 0
+          ? e("div", {style: {textAlign: "center", padding: 40, color: "#999", fontSize: 14}}, "No questions match your search.")
+          : filtered.map(function (item) {
+              return e(FAQItem, {
+                key: item.id,
+                item: item,
+                isOpen: openId === item.id,
+                onToggle: function () { setOpenId(openId === item.id ? null : item.id); }
+              });
+            }),
+
+        e("div", {
+          style: {
+            marginTop: 24, padding: "16px 20px", background: "#f5f5f0",
+            borderRadius: 12, fontSize: 12, lineHeight: 1.7, color: "#666"
+          }
+        },
+          e("span", {style: {fontWeight: 600, color: "#333"}}, "Quick reference: "),
+          "An ", e("span", {style: {color: "#0F6E56", fontWeight: 500}}, "architecture"),
+          " is the blueprint (Transformer, CNN). An ",
+          e("span", {style: {color: "#534AB7", fontWeight: 500}}, "algorithm"),
+          " is the procedure (backpropagation, attention). A ",
+          e("span", {style: {color: "#185FA5", fontWeight: 500}}, "model"),
+          " is the trained product (GPT-4, BERT). Architecture + Algorithm + Data = Model."
+        )
+      );
+    }
+
+    var root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(React.createElement(FAQApp));
+  </script>
+</body>
+</html>
