@@ -46,6 +46,7 @@
     <a href="./index.html">World Map</a>
     <a href="./faq.html" class="active">FAQ</a>
     <a href="./handbook.html">Handbook</a>
+    <a href="./resources.html">Resources</a>
     <a href="../index.html">&larr; Back to Portfolio</a>
   </nav>
   <div id="root"></div>
@@ -223,6 +224,20 @@
           "Time series: ARIMA baseline + GBDTs with lag features. LSTM for streaming.\n" +
           "Graph data: GCN or GAT via PyTorch Geometric.\n\n" +
           "Rule of thumb: ALWAYS start simple, scale complexity only when measured improvement justifies it."
+      },
+      {
+        id: 15,
+        category: "models",
+        question: "Are discriminant analysis and classification the same thing? How are they different?",
+        answer: "Both are supervised learning, but the relationship is: discriminant analysis is a TYPE of classification, not a separate thing. It\u2019s like asking 'how are sedans and cars different?' \u2014 a sedan is a type of car.\n\n" +
+          "Classification is the broader task \u2014 any supervised method that predicts a categorical label. Logistic regression, decision trees, SVM, neural networks are all classifiers. They draw decision boundaries directly.\n\n" +
+          "Discriminant Analysis is a specific family of classifiers that takes a probabilistic/geometric approach. Instead of drawing boundaries directly, it models the statistical distribution of each class and uses those distributions to classify.\n\n" +
+          "Two main flavors:\n" +
+          "LDA (Linear Discriminant Analysis): Assumes each class is Gaussian with shared covariance. Finds the linear combination of features maximizing between-class / within-class variance. Decision boundary is always a straight line. Also doubles as a dimensionality reduction technique.\n\n" +
+          "QDA (Quadratic Discriminant Analysis): Each class gets its own covariance matrix. Produces curved decision boundaries. More flexible but needs more data.\n\n" +
+          "Key insight: LDA is generative (models P(features|class) then uses Bayes\u2019 theorem), while logistic regression is discriminative (models P(class|features) directly). In practice, they often produce nearly identical boundaries on the same data.\n\n" +
+          "Use LDA when: classes are roughly Gaussian, small-to-medium dataset, you want dimensionality reduction simultaneously, or need a fast closed-form solution. Common in finance, biometrics, medical diagnostics.\n\n" +
+          "Skip it when: data isn\u2019t approximately normal, you have lots of data (tree-based methods win), or you need highly non-linear boundaries."
       }
     ];
 

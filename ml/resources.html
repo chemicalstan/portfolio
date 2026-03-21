@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ML Learning Resources</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #fafafa; color: #1a1a2e; min-height: 100vh; }
+    nav { background: #1a1a2e; padding: 12px 24px; display: flex; align-items: center; gap: 24px; }
+    nav a { color: #ccc; text-decoration: none; font-size: 14px; transition: color 0.2s; }
+    nav a:hover { color: #fff; }
+    nav a.active { color: #fff; font-weight: 500; }
+    nav .brand { color: #fff; font-weight: 600; font-size: 15px; margin-right: auto; }
+    #root { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">ML Reference Table</span>
+    <a href="./index.html">World Map</a>
+    <a href="./faq.html">FAQ</a>
+    <a href="./handbook.html">Handbook</a>
+    <a href="./resources.html" class="active">Resources</a>
+    <a href="../index.html">&larr; Back to Portfolio</a>
+  </nav>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+  <script>
+    var useState = React.useState;
+    var e = React.createElement;
+
+    var LEVELS = [
+      {
+        id: "L1",
+        num: "1",
+        title: "Foundation: Get the big picture",
+        subtitle: "Start here. Build the conceptual map before touching code.",
+        color: "#185FA5",
+        bg: "#E6F1FB",
+        resources: [
+          {
+            title: "The Hundred-Page Machine Learning Book",
+            author: "Andriy Burkov",
+            type: "book",
+            format: "PDF / Print",
+            time: "1-2 weeks",
+            url: null,
+            desc: "The single best theory-to-page-count ratio in ML. Covers the entire field — supervised, unsupervised, neural networks, training, evaluation, deployment — in 100 concise pages. Written by a senior ML engineer, not an academic. Read cover to cover before anything else.",
+            why: "Gives you the complete conceptual vocabulary. After this, every other resource makes more sense because you have the mental scaffolding.",
+            pairs: "Pairs with: our World Map (index.html) for quick visual reference of everything the book covers."
+          },
+          {
+            title: "Our ML Reference Site (World Map + FAQ + Handbook)",
+            author: "Your custom resource",
+            type: "reference",
+            format: "HTML (this site)",
+            time: "Ongoing reference",
+            url: null,
+            desc: "The World Map gives you the periodic table of 30 models/architectures/algorithms. The FAQ resolves the most common confusions (architecture vs model vs algorithm, accuracy vs loss, etc.). The Handbook covers roles, problem categories, metrics, and the ML workflow.",
+            why: "Quick lookup during interviews, conversations, or when you forget which metric to use for what. Not a learning resource — a reference resource.",
+            pairs: "Use alongside everything else. It's your compass."
+          },
+          {
+            title: "aman.ai — AI Primers",
+            author: "Aman Chadha (Stanford / Apple)",
+            type: "blog",
+            format: "Web (free)",
+            time: "Ongoing reference",
+            url: "https://aman.ai/primers/ai/",
+            desc: "Hand-picked deep-dive articles on every major AI concept: algorithms, architectures, training techniques, models (BERT, GPT, CLIP, Llama, etc.), evaluation metrics, MLOps, and more. 100+ articles covering the full spectrum from linear regression to state space models to agentic RL.",
+            why: "This is your technical encyclopedia. Don't read linearly — use it as a lookup when you need to understand HOW something works mathematically. The architecture comparisons (ML algorithms comparative analysis, DL architectures comparative analysis) are especially useful.",
+            pairs: "When our World Map tells you WHAT a model is, aman.ai tells you HOW it works under the hood."
+          },
+          {
+            title: "aman.ai — Full Site",
+            author: "Aman Chadha",
+            type: "blog",
+            format: "Web (free)",
+            time: "Ongoing reference",
+            url: "https://aman.ai/",
+            desc: "The parent site with additional resources beyond AI primers: paper summaries, reading lists, interview prep guides, and curated research paper reviews. Covers the latest developments in the field.",
+            why: "Broader context beyond just the primers. Good for staying current and for interview prep.",
+            pairs: "Use the primers for concepts, the main site for staying current."
+          }
+        ]
+      },
+      {
+        id: "L2",
+        num: "2",
+        title: "Build: Hands-on model development",
+        subtitle: "You understand the concepts. Now code them. Get your hands dirty.",
+        color: "#0F6E56",
+        bg: "#E1F5EE",
+        resources: [
+          {
+            title: "Hands-On Machine Learning with Scikit-Learn, Keras, and PyTorch",
+            author: "Aur\u00e9lien G\u00e9ron (3rd edition)",
+            type: "book",
+            format: "PDF / Print",
+            time: "4-8 weeks (selective reading)",
+            url: null,
+            desc: "The definitive code-along ML textbook. Part 1 covers classical ML (linear models, SVMs, decision trees, ensembles, dimensionality reduction) with scikit-learn. Part 2 covers deep learning (neural nets, CNNs, RNNs, Transformers, autoencoders, GANs, RL) with PyTorch/Keras. Every concept includes runnable Python code.",
+            why: "Bridges theory to implementation. After reading Burkov's 100 pages for concepts, G\u00e9ron shows you how to actually build each model in code. The scikit-learn chapters (Part 1) are especially practical for tabular data work.",
+            pairs: "Reference our Handbook's 'Problem Categories' tab to know which chapter to prioritize for your use case."
+          },
+          {
+            title: "fast.ai — Practical Deep Learning for Coders",
+            author: "Jeremy Howard & Rachel Thomas",
+            type: "course",
+            format: "Video + notebooks (free)",
+            time: "7 weeks (1 lesson/week)",
+            url: "https://course.fast.ai/",
+            desc: "Teaches deep learning top-down: start by deploying a state-of-the-art model on day 1, then progressively peel back the layers to understand how it works. Covers image classification, NLP, tabular data, collaborative filtering, and deployment. Uses PyTorch + fastai library.",
+            why: "The fastest path from 'I understand ML concepts' to 'I can build and deploy a real model.' Many fast.ai alumni have become Kaggle gold medalists and received offers from top companies. The top-down approach means you're productive immediately.",
+            pairs: "Do this alongside or after G\u00e9ron. G\u00e9ron goes deeper on theory; fast.ai gets you shipping faster."
+          },
+          {
+            title: "Made With ML",
+            author: "Goku Mohandas (Anyscale)",
+            type: "course",
+            format: "Web + code (free)",
+            time: "1 intensive day (live cohort) or 2-3 weeks self-paced",
+            url: "https://madewithml.com/",
+            desc: "End-to-end MLOps course: first-principles ML concepts, software engineering best practices, scaling workloads (data, train, tune, serve) in Python, connecting all MLOps components (tracking, testing, serving, orchestration), and going from development to production. Builds one complete project from scratch to deployment.",
+            why: "Widely considered the gold standard for production ML. Covers the gap between 'I can train a model in a notebook' and 'I can deploy and maintain a model in production.' Multiple practitioners call it the best MLOps resource on the web.",
+            pairs: "Do after fast.ai or G\u00e9ron. This is where you learn to productionize what you built."
+          },
+          {
+            title: "DataCamp — End-to-End Machine Learning",
+            author: "Joshua Stapleton",
+            type: "course",
+            format: "Interactive (paid)",
+            time: "4 hours",
+            url: "https://www.datacamp.com/courses/end-to-end-machine-learning",
+            desc: "Compact course covering the full ML lifecycle: use case design, EDA, data prep, feature engineering (Boruta), model training, experiment logging (MLflow), evaluation, deployment (Docker + AWS), and monitoring (data drift detection). Hands-on exercises throughout.",
+            why: "If you want a quick, structured walkthrough of the lifecycle without committing weeks. Good complement to Made With ML.",
+            pairs: "Good warm-up before Made With ML if you want something shorter first."
+          }
+        ]
+      },
+      {
+        id: "L3",
+        num: "3",
+        title: "Real world: See how companies actually do it",
+        subtitle: "Learn from production systems at Netflix, Airbnb, DoorDash, Uber, and more.",
+        color: "#854F0B",
+        bg: "#FAEEDA",
+        resources: [
+          {
+            title: "Designing Machine Learning Systems",
+            author: "Chip Huyen (O'Reilly, 2022)",
+            type: "book",
+            format: "Print / O'Reilly / Kindle",
+            time: "2-3 weeks",
+            url: "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/",
+            desc: "THE book on ML system design. Covers every design decision — training data, features, retraining frequency, monitoring, ML platforms — in context of real production systems. Backed by actual case studies. Translated into 10+ languages. Chip worked at NVIDIA, Netflix, Snorkel AI, and co-founded Claypot AI.",
+            why: "This is the 'bible' for understanding how ML works in industry, not just in notebooks. It's the most-recommended book by practicing MLEs. Answers the question: 'I can build a model — now how do I actually ship it and keep it working?'",
+            pairs: "Read after G\u00e9ron or fast.ai. This builds the system-thinking layer on top of your model-building skills."
+          },
+          {
+            title: "Chip Huyen — ML Systems Design (free booklet + 27 design questions)",
+            author: "Chip Huyen",
+            type: "reference",
+            format: "GitHub (free)",
+            time: "Ongoing reference",
+            url: "https://github.com/chiphuyen/machine-learning-systems-design",
+            desc: "Free companion to the book: a booklet on ML system design with links to case studies from engineers at major tech companies. Includes 27 open-ended ML system design questions that come up in interviews at FAANG companies.",
+            why: "Interview prep gold. The 27 system design questions are exactly what you'd face in an MLE or technical PM interview at top companies.",
+            pairs: "Use alongside the book. Practice the 27 questions after reading."
+          },
+          {
+            title: "Evidently AI — ML System Design: 800 Case Studies",
+            author: "Evidently AI team",
+            type: "database",
+            format: "Web (free, searchable)",
+            time: "Browse as needed",
+            url: "https://www.evidentlyai.com/ml-system-design",
+            desc: "Curated database of 800+ case studies from 150+ companies: Netflix, Airbnb, DoorDash, Uber, Spotify, Pinterest, Stripe, and more. Filterable by industry, ML use case (fraud detection, recommendations, search ranking, NLP, computer vision), and technology (GenAI, RAG, agents). Each entry links to the original blog post or paper with full implementation details.",
+            why: "This is the closest thing to what you described: real-world ML from problem statement to production. Browse by industry or use case, pick 5-6 that match your interests, and read them end-to-end. The case studies show failures, tradeoffs, and iteration — not just the happy path.",
+            pairs: "Browse this while reading Chip Huyen. Her book gives the framework; these case studies show it in action."
+          },
+          {
+            title: "GitHub — 300+ ML System Design Case Studies",
+            author: "Engineer1999 (community curated)",
+            type: "database",
+            format: "GitHub (free)",
+            time: "Browse as needed",
+            url: "https://github.com/Engineer1999/A-Curated-List-of-ML-System-Design-Case-Studies",
+            desc: "Companion to Evidently's database. 300+ case studies from 80+ companies organized by ML use case: fraud detection, recommendations, search, ranking, NLP, computer vision, demand forecasting, and more. Each includes a short description to help you quickly find relevant studies.",
+            why: "More organized by use case than Evidently. Good for targeted exploration: 'show me all fraud detection case studies' or 'show me how companies do recommendations.'",
+            pairs: "Alternative view of similar content to Evidently. Use whichever navigation style you prefer."
+          },
+          {
+            title: "Machine Learning in Production: From Models to Products",
+            author: "CMU course textbook (MIT Press, April 2025)",
+            type: "book",
+            format: "Print / web (free slides)",
+            time: "3-4 weeks",
+            url: "https://mlip-cmu.github.io/book/index.html",
+            desc: "Covers designing, building, testing, deploying, and operating software products with ML models. The entire lifecycle from prototype to production. Also covers responsible AI (safety, security, fairness, explainability) and MLOps. Comes from CMU's 17-645 course with publicly available slides and assignments.",
+            why: "More academic and comprehensive than Chip Huyen, with a stronger focus on software engineering practices and responsible AI. Good if you want the rigorous version.",
+            pairs: "Read after Chip Huyen if you want to go deeper. Or use the free slides as a complement."
+          },
+          {
+            title: "Andrew Ng — Structuring Machine Learning Projects (Coursera)",
+            author: "Andrew Ng / DeepLearning.AI",
+            type: "course",
+            format: "Video (free to audit)",
+            time: "2 weeks",
+            url: "https://www.coursera.org/learn/machine-learning-projects",
+            desc: "Teaches how to diagnose errors in ML systems, prioritize strategies for reducing errors, handle mismatched train/test sets, and decide between end-to-end learning vs. pipeline approaches. Draws on Ng's experience shipping DL products at Google Brain, Baidu, and Landing AI.",
+            why: "The strategic thinking layer. Not about building models — about making the right decisions when your model doesn't work. 'Should I get more data or tune hyperparameters?' This course teaches you how to answer that.",
+            pairs: "Do alongside or after Chip Huyen. Ng gives the decision-making intuition; Huyen gives the system design framework."
+          }
+        ]
+      },
+      {
+        id: "L4",
+        num: "4",
+        title: "Specialize: Go deep on LLMs and frontier AI",
+        subtitle: "Once you have the foundation. For LLM/AI engineering roles specifically.",
+        color: "#993C1D",
+        bg: "#FAECE7",
+        resources: [
+          {
+            title: "Hands-On Large Language Models",
+            author: "Jay Alammar & Maarten Grootendorst",
+            type: "book",
+            format: "PDF / Print",
+            time: "3-4 weeks",
+            url: null,
+            desc: "Practical LLM engineering: embeddings, tokenization, fine-tuning, prompt engineering, RAG, semantic search, and multimodal models. Heavy on code and implementation. Jay Alammar is famous for his illustrated Transformer explanations (the most-shared ML blog posts ever).",
+            why: "The bridge from 'I understand Transformers conceptually' to 'I can build LLM-powered applications.' If you're targeting AI engineer or PM roles at companies using LLMs, this is essential.",
+            pairs: "Read after the foundation (Levels 1-2). This assumes you already understand Transformers, attention, and basic NLP."
+          },
+          {
+            title: "LLM Engineer's Handbook",
+            author: "Paul Iusztin & Maxime Labonne",
+            type: "book",
+            format: "PDF / Print",
+            time: "3-4 weeks",
+            url: null,
+            desc: "Production LLM systems end-to-end: data pipelines for LLMs, fine-tuning at scale, evaluation frameworks, RAG architecture, agent systems, deployment, monitoring, and cost optimization. Goes deeper into the ops side than 'Hands-On LLMs.'",
+            why: "This is the advanced playbook. If you end up in a role where you're building or managing LLM infrastructure (AI engineer, technical PM for AI products), this is your reference. It covers what breaks in production and how to fix it.",
+            pairs: "Read after 'Hands-On LLMs.' This is Level 4b — the production and operations layer on top of the application layer."
+          },
+          {
+            title: "Challenges in Deploying Machine Learning (ACM Survey)",
+            author: "Paleyes, Urma & Lawrence (2022)",
+            type: "paper",
+            format: "PDF (free)",
+            time: "2-3 hours",
+            url: "https://dl.acm.org/doi/10.1145/3533378",
+            desc: "Academic survey of deployment challenges across industries: autonomous vehicles, medical imaging, network traffic analysis, and more. Covers what goes wrong at each lifecycle stage plus cross-cutting concerns (ethics, trust, security, law).",
+            why: "The honest picture of what makes ML hard in practice. Good for understanding the full landscape of failure modes.",
+            pairs: "Read alongside Chip Huyen or the case study databases for the theoretical framing of the practical challenges."
+          }
+        ]
+      }
+    ];
+
+    var TYPE_ICONS = {
+      book: {label: "Book", bg: "#EEEDFE", color: "#534AB7"},
+      course: {label: "Course", bg: "#E1F5EE", color: "#0F6E56"},
+      blog: {label: "Blog / Reference", bg: "#FAEEDA", color: "#854F0B"},
+      reference: {label: "Reference", bg: "#FAEEDA", color: "#854F0B"},
+      database: {label: "Database", bg: "#FAECE7", color: "#993C1D"},
+      paper: {label: "Paper", bg: "#E6F1FB", color: "#185FA5"}
+    };
+
+    function Chevron(props) {
+      return e("svg", {width:18, height:18, viewBox:"0 0 20 20", fill:"none",
+        style:{transition:"transform 0.3s", transform:props.open?"rotate(180deg)":"rotate(0)", flexShrink:0}},
+        e("path", {d:"M5 7.5L10 12.5L15 7.5", stroke:"currentColor", strokeWidth:2, strokeLinecap:"round", strokeLinejoin:"round"})
+      );
+    }
+
+    function ResourceCard(props) {
+      var r = props.resource, isOpen = props.isOpen, onToggle = props.onToggle, levelColor = props.levelColor;
+      var typeInfo = TYPE_ICONS[r.type] || TYPE_ICONS.reference;
+
+      return e("div", {style:{
+        marginBottom:8, borderRadius:12, overflow:"hidden", transition:"all 0.2s",
+        border: isOpen ? "1.5px solid " + levelColor : "1px solid #e5e5e5",
+        background: isOpen ? "#fff" : "#fff"
+      }},
+        e("button", {onClick:onToggle, style:{
+          width:"100%", display:"flex", alignItems:"center", gap:12,
+          padding:"14px 18px", background:"transparent", border:"none",
+          cursor:"pointer", textAlign:"left", color:"#1a1a2e"
+        }},
+          e("div", {style:{display:"flex", flexDirection:"column", gap:2, flex:1}},
+            e("div", {style:{display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}},
+              e("span", {style:{fontSize:15, fontWeight:600, lineHeight:1.3}}, r.title),
+              e("span", {style:{fontSize:10, fontWeight:500, color:typeInfo.color, background:typeInfo.bg,
+                padding:"2px 8px", borderRadius:6, whiteSpace:"nowrap"}}, typeInfo.label),
+              r.time ? e("span", {style:{fontSize:10, color:"#999", whiteSpace:"nowrap"}}, r.time) : null
+            ),
+            e("div", {style:{fontSize:12, color:"#888"}}, r.author + (r.format ? " \u00B7 " + r.format : ""))
+          ),
+          e(Chevron, {open:isOpen})
+        ),
+        isOpen ? e("div", {style:{padding:"0 18px 18px", animation:"fadeIn 0.25s ease"}},
+          e("div", {style:{padding:"14px 18px", background:"#fafafa", borderRadius:10, border:"1px solid #f0f0f0"}},
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333", marginBottom:12}}, r.desc),
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:levelColor, marginBottom:8}},
+              e("span", {style:{fontWeight:600}}, "Why this resource: "), r.why
+            ),
+            r.pairs ? e("div", {style:{fontSize:12, color:"#888", lineHeight:1.6, fontStyle:"italic"}}, r.pairs) : null,
+            r.url ? e("a", {href:r.url, target:"_blank", rel:"noopener noreferrer", style:{
+              display:"inline-block", marginTop:10, fontSize:12, fontWeight:500,
+              color:levelColor, padding:"6px 14px", borderRadius:8,
+              border:"1px solid " + levelColor + "44", textDecoration:"none",
+              transition:"all 0.2s"
+            }}, "Open resource \u2192") : null
+          )
+        ) : null
+      );
+    }
+
+    function ResourcesApp() {
+      var _open = useState(null), openId = _open[0], setOpenId = _open[1];
+      var _level = useState("all"), levelFilter = _level[0], setLevelFilter = _level[1];
+
+      var totalCount = LEVELS.reduce(function(sum, l) { return sum + l.resources.length; }, 0);
+
+      return e("div", {style:{maxWidth:900, margin:"0 auto", padding:"8px 0"}},
+        e("style", null, "@keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }"),
+
+        e("h2", {style:{fontSize:22, fontWeight:600, margin:"0 0 4px"}}, "ML learning resources"),
+        e("p", {style:{fontSize:13, color:"#888", margin:"0 0 16px"}},
+          totalCount + " curated resources organized by learning stage \u2014 attack them in order, top to bottom"
+        ),
+
+        e("div", {style:{display:"flex", gap:6, flexWrap:"wrap", marginBottom:20}},
+          e("button", {onClick:function(){setLevelFilter("all")}, style:{
+            padding:"6px 14px", borderRadius:8, fontSize:12, fontWeight:levelFilter==="all"?600:400, cursor:"pointer",
+            border:levelFilter==="all"?"none":"1px solid #ddd",
+            background:levelFilter==="all"?"#1a1a2e":"transparent",
+            color:levelFilter==="all"?"#fff":"#666"
+          }}, "All levels"),
+          LEVELS.map(function(level) {
+            var active = levelFilter === level.id;
+            return e("button", {key:level.id, onClick:function(){setLevelFilter(level.id)}, style:{
+              padding:"6px 14px", borderRadius:8, fontSize:12, fontWeight:active?600:400, cursor:"pointer",
+              border:active?"none":"1px solid " + level.color + "44",
+              background:active?level.color:"transparent",
+              color:active?"#fff":level.color
+            }}, "Level " + level.num);
+          })
+        ),
+
+        LEVELS.filter(function(l) { return levelFilter === "all" || levelFilter === l.id; }).map(function(level) {
+          return e("div", {key:level.id, style:{marginBottom:28}},
+            e("div", {style:{marginBottom:12}},
+              e("div", {style:{display:"flex", alignItems:"center", gap:10, marginBottom:4}},
+                e("span", {style:{
+                  width:28, height:28, borderRadius:"50%", background:level.color, color:"#fff",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:14, fontWeight:700, flexShrink:0
+                }}, level.num),
+                e("span", {style:{fontSize:16, fontWeight:600, color:level.color}}, level.title)
+              ),
+              e("div", {style:{fontSize:13, color:"#888", paddingLeft:38}}, level.subtitle)
+            ),
+            e("div", {style:{paddingLeft:14, borderLeft:"2px solid " + level.color + "33"}},
+              level.resources.map(function(resource, ri) {
+                var uid = level.id + "-" + ri;
+                return e(ResourceCard, {
+                  key:uid, resource:resource, levelColor:level.color,
+                  isOpen:openId === uid,
+                  onToggle:function() { setOpenId(openId === uid ? null : uid); }
+                });
+              })
+            )
+          );
+        }),
+
+        e("div", {style:{marginTop:20, padding:"16px 20px", background:"#1a1a2e", borderRadius:12, color:"#fff"}},
+          e("div", {style:{fontSize:14, fontWeight:600, marginBottom:10}}, "The learning sequence at a glance"),
+          e("div", {style:{display:"flex", flexWrap:"wrap", gap:6, alignItems:"center", fontSize:12, lineHeight:2}},
+            [
+              {text:"100-Page ML Book", bg:"#185FA5"},
+              {text:"\u2192", bg:null},
+              {text:"Our Reference Site", bg:"#185FA5"},
+              {text:"+", bg:null},
+              {text:"aman.ai (lookup)", bg:"#185FA5"},
+              {text:"\u2192", bg:null},
+              {text:"G\u00e9ron (code)", bg:"#0F6E56"},
+              {text:"+", bg:null},
+              {text:"fast.ai (build)", bg:"#0F6E56"},
+              {text:"\u2192", bg:null},
+              {text:"Made With ML (deploy)", bg:"#0F6E56"},
+              {text:"\u2192", bg:null},
+              {text:"Chip Huyen (system design)", bg:"#854F0B"},
+              {text:"+", bg:null},
+              {text:"Case studies (800+)", bg:"#854F0B"},
+              {text:"\u2192", bg:null},
+              {text:"Hands-On LLMs", bg:"#993C1D"},
+              {text:"+", bg:null},
+              {text:"LLM Eng Handbook", bg:"#993C1D"}
+            ].map(function(item, i) {
+              if (!item.bg) return e("span", {key:i, style:{color:"#666"}}, item.text);
+              return e("span", {key:i, style:{padding:"4px 10px", background:item.bg + "33", border:"1px solid " + item.bg + "55", borderRadius:6, color:"#fff"}}, item.text);
+            })
+          )
+        ),
+
+        e("div", {style:{marginTop:12, padding:"14px 18px", background:"#f5f5f0", borderRadius:12, fontSize:12, lineHeight:1.7, color:"#666"}},
+          e("span", {style:{fontWeight:600, color:"#333"}}, "Note on your PDFs: "),
+          "Your Google Drive books (The Hundred-Page ML, Hands-On ML with Scikit-Learn & PyTorch, Hands-On Large Language Models, LLM Engineer's Handbook) are integrated into this learning path at the appropriate levels above. Keep them in Drive for easy mobile access alongside these web resources."
+        ),
+
+        e("div", {style:{marginTop:8, padding:"14px 18px", background:"#f5f5f0", borderRadius:12, fontSize:12, lineHeight:1.7, color:"#666"}},
+          "Curated March 2026. Resources ordered by learning stage, not quality \u2014 they're all excellent. Attack Level 1 first, then proceed sequentially. You don't need to complete one level to start the next; overlap is natural."
+        )
+      );
+    }
+
+    var root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(React.createElement(ResourcesApp));
+  </script>
+</body>
+</html>
