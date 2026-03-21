@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ML Engineer Handbook</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #fafafa; color: #1a1a2e; min-height: 100vh; }
+    nav { background: #1a1a2e; padding: 12px 24px; display: flex; align-items: center; gap: 24px; }
+    nav a { color: #ccc; text-decoration: none; font-size: 14px; transition: color 0.2s; }
+    nav a:hover { color: #fff; }
+    nav a.active { color: #fff; font-weight: 500; }
+    nav .brand { color: #fff; font-weight: 600; font-size: 15px; margin-right: auto; }
+    #root { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">ML Reference Table</span>
+    <a href="./index.html">World Map</a>
+    <a href="./faq.html">FAQ</a>
+    <a href="./handbook.html" class="active">Handbook</a>
+    <a href="./index.html">&larr; Back to Portfolio</a>
+  </nav>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+  <script>
+    var useState = React.useState, useMemo = React.useMemo;
+    var e = React.createElement;
+
+    var ROLES = [
+      {id:"mle", abbr:"MLE", title:"Machine Learning Engineer", color:"#185FA5", bg:"#E6F1FB",
+       oneLiner:"How do we turn this model into a production system that works reliably?",
+       thinkOf:"Part software engineer, part applied ML practitioner, part MLOps engineer",
+       responsibilities:[
+         "Build training and inference pipelines",
+         "Prepare data for models in production",
+         "Train, evaluate, package, deploy, and monitor models",
+         "Optimize for latency, scale, reliability, and cost",
+         "Integrate models into real applications with product/backend teams"
+       ]},
+      {id:"ds", abbr:"DS", title:"Data Scientist", color:"#0F6E56", bg:"#E1F5EE",
+       oneLiner:"What should we try, and does it work?",
+       thinkOf:"Part analyst, part statistician, part experimental model builder",
+       responsibilities:[
+         "Understand the business problem",
+         "Explore and clean data, form hypotheses",
+         "Run experiments and build prototypes",
+         "Compare candidate features and models",
+         "Interpret results for business stakeholders"
+       ]},
+      {id:"de", abbr:"DE", title:"Data Engineer", color:"#854F0B", bg:"#FAEEDA",
+       oneLiner:"How do we get clean, reliable data to the right place?",
+       thinkOf:"The builder of the data plumbing",
+       responsibilities:[
+         "Build data pipelines (ETL/ELT)",
+         "Move data from sources into warehouses/lakes",
+         "Ensure data quality, freshness, and reliability",
+         "Model data for analytics and ML consumption",
+         "Manage workflow orchestration"
+       ]},
+      {id:"aie", abbr:"AIE", title:"AI Engineer", color:"#993C1D", bg:"#FAECE7",
+       oneLiner:"How do we build a real AI product using modern foundation models?",
+       thinkOf:"An application engineer for modern AI systems",
+       responsibilities:[
+         "Integrate LLMs, vision/speech models, agents into products",
+         "Build prompt pipelines, RAG systems, evaluation flows",
+         "Orchestrate model calls, tools, memory, and UX",
+         "Optimize cost, latency, and product behavior",
+         "Build guardrails and safety layers"
+       ]}
+    ];
+
+    var OVERLAPS = [
+      {a:"MLE", b:"Data Scientist", color:"#534AB7", items:["Feature engineering","Model selection","Experiment evaluation","Understanding metrics","Error analysis"]},
+      {a:"MLE", b:"Data Engineer", color:"#854F0B", items:["Data pipelines","Batch and streaming data","Feature stores","Data validation","Production data quality"]},
+      {a:"MLE", b:"AI Engineer", color:"#993C1D", items:["Model serving","Inference optimization","Evaluation","Deployment","Monitoring"]}
+    ];
+
+    var PROBLEM_CATEGORIES = [
+      {id:"classification", title:"Classification", color:"#185FA5", bg:"#E6F1FB",
+       desc:"Output is a category (spam/not spam, fraud/not fraud, disease present/absent)",
+       models:"Logistic regression, Decision tree, Random forest, XGBoost/LightGBM/CatBoost, SVM, Neural network, Transformer (text/image)",
+       metrics:"Accuracy (balanced classes), Precision (false positives costly), Recall (false negatives costly), F1 (balance both), ROC-AUC / PR-AUC (compare across thresholds)",
+       examples:"Spam detection, fraud detection, churn prediction, medical diagnosis"},
+      {id:"regression", title:"Regression", color:"#0F6E56", bg:"#E1F5EE",
+       desc:"Output is a continuous number (price, demand, revenue, delivery time)",
+       models:"Linear/Ridge/Lasso/ElasticNet regression, Decision tree regressor, Random forest regressor, XGBoost regressor, Neural network",
+       metrics:"MAE (easy-to-understand average error), RMSE (punishes large errors more), R-squared (variance explained)",
+       examples:"House price prediction, demand forecasting, revenue estimation"},
+      {id:"ranking", title:"Ranking", color:"#534AB7", bg:"#EEEDFE",
+       desc:"Goal is to order items by relevance (search results, feed, recommendations, ads)",
+       models:"LambdaMART, XGBoost ranker, LightGBM ranker, RankNet, Neural ranking, Transformer-based rerankers",
+       metrics:"NDCG, MAP, MRR, Precision@K, Recall@K",
+       examples:"Search results, social feed ranking, product recommendations, ad ordering"},
+      {id:"clustering", title:"Clustering", color:"#854F0B", bg:"#FAEEDA",
+       desc:"Discover groups without labels (unsupervised). Business interpretability matters as much as math metrics.",
+       models:"K-means, Hierarchical clustering, DBSCAN, Gaussian mixture models",
+       metrics:"Silhouette score, Davies-Bouldin index, Calinski-Harabasz score, business usefulness",
+       examples:"Customer segmentation, behavior grouping, anomaly pattern discovery"},
+      {id:"timeseries", title:"Time Series Forecasting", color:"#993C1D", bg:"#FAECE7",
+       desc:"Predict future values over time. Must respect time order \u2014 never random train/test splits.",
+       models:"Naive forecast, Moving average, ARIMA/SARIMA, Prophet, XGBoost with time features, LSTM, Temporal transformers",
+       metrics:"MAE, RMSE, MAPE, sMAPE, WAPE",
+       examples:"Sales forecasting, demand planning, traffic prediction, energy usage"},
+      {id:"recsys", title:"Recommendation Systems", color:"#0F6E56", bg:"#E1F5EE",
+       desc:"Suggest relevant items to users (movies, products, songs, content)",
+       models:"Collaborative filtering, Matrix factorization, Content-based, Two-tower models, Deep recommendation models",
+       metrics:"Precision@K, Recall@K, MAP, NDCG, CTR, conversion rate",
+       examples:"Netflix, Spotify, YouTube, Amazon product recommendations"},
+      {id:"anomaly", title:"Anomaly Detection", color:"#993C1D", bg:"#FAECE7",
+       desc:"Identify unusual behavior (fraud, intrusion, faulty sensors, unusual spending)",
+       models:"Isolation forest, One-class SVM, Autoencoders, Statistical thresholding, Clustering-based",
+       metrics:"Precision, Recall, F1, ROC-AUC, PR-AUC, alert quality in practice",
+       examples:"Fraud detection, network intrusion, sensor monitoring"},
+      {id:"nlp", title:"NLP Tasks", color:"#185FA5", bg:"#E6F1FB",
+       desc:"Input is text: classification, NER, summarization, translation, QA, semantic search",
+       models:"Traditional: LogReg+TF-IDF, Naive Bayes, SVM. Modern: BERT, RoBERTa, DeBERTa, T5, GPT, Sentence Transformers",
+       metrics:"Accuracy, F1, Exact Match, BLEU, ROUGE, MRR",
+       examples:"Sentiment analysis, document classification, NER, translation, search"},
+      {id:"cv", title:"Computer Vision", color:"#534AB7", bg:"#EEEDFE",
+       desc:"Input is image/video: classification, detection, segmentation, OCR, medical imaging",
+       models:"CNNs, ResNet, EfficientNet, Vision Transformers, YOLO, Faster R-CNN, U-Net, SAM",
+       metrics:"Accuracy, Precision, Recall, F1, IoU, mAP, Dice score",
+       examples:"Image classification, object detection, segmentation, medical imaging"},
+      {id:"genai", title:"Generative AI / Sequence Generation", color:"#854F0B", bg:"#FAEEDA",
+       desc:"Model creates content: chat, summarization, code, translation, images. AI eng strongly overlaps with MLE here.",
+       models:"GPT-style transformers, T5, Diffusion models, Multimodal foundation models",
+       metrics:"ROUGE, BLEU, Exact Match, human eval, task success rate, hallucination rate, latency, cost",
+       examples:"Chat assistants, code generation, image generation, summarization"}
+    ];
+
+    var TIERS = [
+      {id:"t1", title:"Tier 1: Absolutely core (learn first)", color:"#185FA5", bg:"#E6F1FB", items:[
+        {label:"Programming", detail:"Python, SQL, basic Bash. Software eng fundamentals: functions, classes, testing, APIs, Git, clean code."},
+        {label:"ML Fundamentals", detail:"Supervised/unsupervised learning, train/val/test split, bias vs variance, overfitting/underfitting, feature engineering, cross-validation, hyperparameter tuning, data leakage, class imbalance."},
+        {label:"Core Libraries", detail:"NumPy, pandas, scikit-learn, matplotlib, PyTorch (preferred default over TensorFlow in 2025)."},
+        {label:"Deployment Basics", detail:"FastAPI or Flask, Docker, REST APIs, model serialization (pickle, ONNX), batch vs real-time inference."},
+        {label:"Evaluation", detail:"Pick the right metric for the problem. Compare baseline vs advanced. Confusion matrix, threshold tuning, business tradeoffs."}
+      ]},
+      {id:"t2", title:"Tier 2: Very important for real jobs", color:"#0F6E56", bg:"#E1F5EE", items:[
+        {label:"Data Handling", detail:"Cleaning, preprocessing, missing values, categorical encoding, scaling/normalization, feature pipelines."},
+        {label:"Production / MLOps", detail:"MLflow or W&B, experiment tracking, model versioning, CI/CD basics, cloud basics (AWS/GCP/Azure). S3, EC2, Lambda, SageMaker."},
+        {label:"Monitoring", detail:"Data drift, concept drift, latency, accuracy decay, failed predictions, retraining triggers."}
+      ]},
+      {id:"t3", title:"Tier 3: Learn later based on your path", color:"#854F0B", bg:"#FAEEDA", items:[
+        {label:"Deep Learning", detail:"Neural networks, CNNs, RNNs, Transformers at an architectural level."},
+        {label:"Specializations", detail:"NLP, computer vision, recommender systems, time series, ranking, reinforcement learning."},
+        {label:"Distributed / Big Data", detail:"Spark, Ray, distributed PyTorch, feature stores, Kafka for real-time ML pipelines."}
+      ]}
+    ];
+
+    var WORKFLOW_STEPS = [
+      {n:1, title:"Define the business problem", detail:"'Can we predict churn?' 'Detect fraud?' 'Recommend products?' Usually driven by product/business/analytics.", who:"Product + DS"},
+      {n:2, title:"Translate to ML problem", detail:"Churn \u2192 classification. Price \u2192 regression. Recommendations \u2192 ranking. Customer groups \u2192 clustering. Summarize docs \u2192 generation.", who:"DS + MLE"},
+      {n:3, title:"Define success", detail:"Not just model performance but product success: increase retention 5%, reduce fraud losses, latency < 100ms.", who:"Product + DS"},
+      {n:4, title:"Gather and prepare data", detail:"Identify sources, clean, label if needed, define features, split train/val/test, check for leakage.", who:"DE + DS"},
+      {n:5, title:"Build a baseline", detail:"LogReg for classification, LinReg for regression, naive forecast for time series. Shows if complex ML is even needed.", who:"DS + MLE"},
+      {n:6, title:"Experiment with candidates", detail:"Try multiple models, features, hyperparameters. Both DS and MLE may do this depending on team.", who:"DS + MLE"},
+      {n:7, title:"Evaluate correctly", detail:"Right metric, compare to baseline, error analysis, subgroup performance, robustness checks.", who:"DS + MLE"},
+      {n:8, title:"Productionize", detail:"Package model, create train/inference pipelines, expose endpoint, add logging/monitoring, deploy safely.", who:"MLE leads"},
+      {n:9, title:"Monitor in production", detail:"Latency, failures, drift, real-world performance, retraining needs.", who:"MLE + DE"},
+      {n:10, title:"Iterate", detail:"Production teaches you what notebooks missed. Continuous improvement loop.", who:"Everyone"}
+    ];
+
+    function Chevron(props) {
+      return e("svg", {width:18, height:18, viewBox:"0 0 20 20", fill:"none",
+        style:{transition:"transform 0.3s", transform:props.open?"rotate(180deg)":"rotate(0)", flexShrink:0}},
+        e("path", {d:"M5 7.5L10 12.5L15 7.5", stroke:"currentColor", strokeWidth:2, strokeLinecap:"round", strokeLinejoin:"round"})
+      );
+    }
+
+    function Accordion(props) {
+      var _s = useState(false), open = _s[0], setOpen = _s[1];
+      return e("div", {style:{marginBottom:6, borderRadius:10, border:open?"1.5px solid "+(props.color||"#ddd"):"1px solid #e8e8e8",
+        background:open?(props.bg||"#f9f9f9")+"66":"#fff", overflow:"hidden", transition:"all 0.2s"}},
+        e("button", {onClick:function(){setOpen(!open)}, style:{width:"100%", display:"flex", alignItems:"center", gap:10,
+          padding:"12px 16px", background:"transparent", border:"none", cursor:"pointer", textAlign:"left", color:"#1a1a2e"}},
+          props.badge ? e("span", {style:{fontSize:10, fontWeight:600, color:props.color, background:props.bg,
+            padding:"2px 8px", borderRadius:6, whiteSpace:"nowrap"}}, props.badge) : null,
+          e("span", {style:{flex:1, fontSize:14, fontWeight:500, lineHeight:1.4}}, props.title),
+          e(Chevron, {open:open})
+        ),
+        open ? e("div", {style:{padding:"0 16px 14px", animation:"fadeIn 0.25s ease"}}, props.children) : null
+      );
+    }
+
+    function RoleCard(props) {
+      var r = props.role;
+      return e("div", {style:{background:r.bg, border:"1px solid "+r.color+"44", borderRadius:12, padding:"16px 20px", flex:"1 1 200px", minWidth:200}},
+        e("div", {style:{display:"flex", alignItems:"center", gap:8, marginBottom:8}},
+          e("span", {style:{fontWeight:700, fontSize:20, color:r.color}}, r.abbr),
+          e("span", {style:{fontSize:13, fontWeight:600, color:r.color}}, r.title)
+        ),
+        e("div", {style:{fontSize:13, fontStyle:"italic", color:r.color+"CC", marginBottom:10, lineHeight:1.5}}, '"'+r.oneLiner+'"'),
+        e("div", {style:{fontSize:11, color:"#888", marginBottom:8}}, "Think of: "+r.thinkOf),
+        r.responsibilities.map(function(item, i) {
+          return e("div", {key:i, style:{fontSize:12, color:"#444", padding:"3px 0", paddingLeft:12, borderLeft:"2px solid "+r.color+"33", marginBottom:3, lineHeight:1.5}}, item);
+        })
+      );
+    }
+
+    function ProblemCard(props) {
+      var p = props.problem;
+      return e(Accordion, {title:p.title, color:p.color, bg:p.bg, badge:p.id.toUpperCase()},
+        e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333"}},
+          e("div", {style:{marginBottom:8}}, e("span", {style:{fontWeight:500, color:p.color}}, "What: "), p.desc),
+          e("div", {style:{marginBottom:8}}, e("span", {style:{fontWeight:500, color:p.color}}, "Models: "), p.models),
+          e("div", {style:{marginBottom:8}}, e("span", {style:{fontWeight:500, color:p.color}}, "Metrics: "), p.metrics),
+          e("div", null, e("span", {style:{fontWeight:500, color:p.color}}, "Examples: "), p.examples)
+        )
+      );
+    }
+
+    function HandbookApp() {
+      var _sec = useState("roles"), section = _sec[0], setSection = _sec[1];
+
+      var sections = [
+        {id:"roles", label:"Roles & Overlaps"},
+        {id:"problems", label:"Problem Categories"},
+        {id:"workflow", label:"ML Workflow"},
+        {id:"learning", label:"Learning Path"},
+        {id:"tools", label:"Tool Stack"},
+        {id:"metrics", label:"Metrics Cheat Sheet"}
+      ];
+
+      return e("div", {style:{maxWidth:900, margin:"0 auto", padding:"8px 0"}},
+        e("style", null, "@keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }"),
+
+        e("h2", {style:{fontSize:22, fontWeight:600, margin:"0 0 4px"}}, "ML Engineer Handbook"),
+        e("p", {style:{fontSize:13, color:"#888", margin:"0 0 16px"}},
+          "Roles, problem types, workflows, learning paths, and tool stacks \u2014 the practical guide to ML careers"
+        ),
+
+        e("div", {style:{display:"flex", gap:6, flexWrap:"wrap", marginBottom:20, borderBottom:"1px solid #eee", paddingBottom:12}},
+          sections.map(function(s) {
+            var active = section === s.id;
+            return e("button", {key:s.id, onClick:function(){setSection(s.id)}, style:{
+              padding:"7px 16px", borderRadius:8, fontSize:13, fontWeight:active?600:400, cursor:"pointer",
+              border:active?"none":"1px solid #ddd",
+              background:active?"#1a1a2e":"transparent",
+              color:active?"#fff":"#666", transition:"all 0.2s"
+            }}, s.label);
+          })
+        ),
+
+        section === "roles" ? e("div", null,
+          e("h3", {style:{fontSize:16, fontWeight:600, marginBottom:12}}, "The four roles"),
+          e("div", {style:{display:"flex", gap:12, flexWrap:"wrap", marginBottom:24}},
+            ROLES.map(function(r) { return e(RoleCard, {key:r.id, role:r}); })
+          ),
+          e("h3", {style:{fontSize:16, fontWeight:600, marginBottom:12}}, "Where they overlap"),
+          OVERLAPS.map(function(o, i) {
+            return e("div", {key:i, style:{marginBottom:10, padding:"12px 16px", borderRadius:10, background:o.color+"0A", border:"1px solid "+o.color+"22"}},
+              e("div", {style:{fontSize:13, fontWeight:600, color:o.color, marginBottom:6}}, o.a+" \u2229 "+o.b),
+              e("div", {style:{display:"flex", flexWrap:"wrap", gap:6}},
+                o.items.map(function(item, j) {
+                  return e("span", {key:j, style:{fontSize:11, padding:"3px 10px", borderRadius:6, background:o.color+"15", color:o.color}}, item);
+                })
+              )
+            );
+          }),
+          e("div", {style:{marginTop:16, padding:"14px 18px", background:"#f5f5f0", borderRadius:10, fontSize:13, lineHeight:1.7, color:"#555"}},
+            e("span", {style:{fontWeight:600, color:"#333"}}, "Who decides the model? "),
+            "It\u2019s collaborative. The DS tests hypotheses and picks promising models experimentally. The MLE decides what\u2019s practical to deploy (speed, cost, maintainability). Product stakeholders influence which metric matters, acceptable latency, and whether interpretability is needed. In mature teams, model choice is shared."
+          ),
+          e("div", {style:{marginTop:10, padding:"14px 18px", background:"#f5f5f0", borderRadius:10, fontSize:13, lineHeight:1.7, color:"#555"}},
+            e("span", {style:{fontWeight:600, color:"#333"}}, "The most important mindset shift: "),
+            "A strong MLE is NOT the person who knows every model. It\u2019s the person who can frame the problem correctly, choose a reasonable baseline, evaluate honestly, build reliable pipelines, deploy safely, monitor production, and improve over time."
+          )
+        ) : null,
+
+        section === "problems" ? e("div", null,
+          e("h3", {style:{fontSize:16, fontWeight:600, marginBottom:4}}, "ML problem categories"),
+          e("p", {style:{fontSize:13, color:"#888", marginBottom:12}}, "Each category has its own models, metrics, and evaluation approach. Click to expand."),
+          PROBLEM_CATEGORIES.map(function(p) { return e(ProblemCard, {key:p.id, problem:p}); }),
+          e("div", {style:{marginTop:16, padding:"14px 18px", background:"#E6F1FB", borderRadius:10, fontSize:13, lineHeight:1.7, color:"#042C53"}},
+            e("span", {style:{fontWeight:600}}, "Where do Transformers fit? "),
+            "Transformers are NOT a problem category \u2014 they\u2019re a model family. They\u2019re used in NLP, computer vision, speech, multimodal AI, ranking, and time series. Classification, regression, and ranking are problem types. Transformers can solve several of those problem types."
+          )
+        ) : null,
+
+        section === "workflow" ? e("div", null,
+          e("h3", {style:{fontSize:16, fontWeight:600, marginBottom:12}}, "The ML workflow playbook"),
+          WORKFLOW_STEPS.map(function(step) {
+            return e("div", {key:step.n, style:{display:"flex", gap:14, marginBottom:10, alignItems:"flex-start"}},
+              e("div", {style:{width:32, height:32, borderRadius:"50%", background:"#1a1a2e", color:"#fff",
+                display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:600, flexShrink:0}}, step.n),
+              e("div", {style:{flex:1, padding:"6px 14px", background:"#fff", borderRadius:10, border:"1px solid #eee"}},
+                e("div", {style:{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4}},
+                  e("span", {style:{fontSize:14, fontWeight:600, color:"#1a1a2e"}}, step.title),
+                  e("span", {style:{fontSize:10, padding:"2px 8px", borderRadius:6, background:"#EEEDFE", color:"#534AB7"}}, step.who)
+                ),
+                e("div", {style:{fontSize:13, color:"#555", lineHeight:1.5}}, step.detail)
+              )
+            );
+          }),
+          e("div", {style:{marginTop:16, padding:"14px 18px", background:"#FAEEDA", borderRadius:10, fontSize:13, lineHeight:1.7, color:"#412402"}},
+            e("span", {style:{fontWeight:600}}, "Key principle: "),
+            "Always build a baseline BEFORE fancy models. Logistic regression for classification, linear regression for regression, naive forecast for time series. This tells you whether complex ML is even necessary."
+          )
+        ) : null,
+
+        section === "learning" ? e("div", null,
+          e("h3", {style:{fontSize:16, fontWeight:600, marginBottom:12}}, "MLE learning path (in order)"),
+          TIERS.map(function(tier) {
+            return e("div", {key:tier.id, style:{marginBottom:16}},
+              e("div", {style:{fontSize:14, fontWeight:600, color:tier.color, marginBottom:8, padding:"6px 12px",
+                background:tier.bg, borderRadius:8, display:"inline-block"}}, tier.title),
+              tier.items.map(function(item, i) {
+                return e(Accordion, {key:i, title:item.label, color:tier.color, bg:tier.bg},
+                  e("div", {style:{fontSize:13, lineHeight:1.7, color:"#444"}}, item.detail)
+                );
+              })
+            );
+          }),
+          e("div", {style:{marginTop:16, padding:"14px 18px", background:"#FAECE7", borderRadius:10, fontSize:13, lineHeight:1.7, color:"#4A1B0C"}},
+            e("span", {style:{fontWeight:600}}, "What to deprioritize early: "),
+            "Building transformers from scratch, advanced math proofs, Kubernetes deep expertise, distributed training, every cloud service, every DL architecture. Your early goal: understand ML problem types, build solid models, evaluate correctly, deploy simple versions, understand what breaks in production."
+          )
+        ) : null,
+
+        section === "tools" ? e("div", null,
+          e("h3", {style:{fontSize:16, fontWeight:600, marginBottom:12}}, "MLE tool stack"),
+          e("div", {style:{display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(260px, 1fr))", gap:12}},
+            [
+              {title:"Core Stack", color:"#185FA5", bg:"#E6F1FB",
+               items:["Python","SQL","scikit-learn","PyTorch","pandas / NumPy","matplotlib","Jupyter","Git"]},
+              {title:"Production Stack", color:"#0F6E56", bg:"#E1F5EE",
+               items:["FastAPI or Flask","Docker","MLflow or W&B","PostgreSQL","Redis (sometimes)","S3 / cloud storage","CI/CD basics"]},
+              {title:"Nice-to-Have", color:"#854F0B", bg:"#FAEEDA",
+               items:["Airflow","Spark","Kafka","Kubernetes","Ray","Feature stores","Vector databases (RAG/retrieval)"]}
+            ].map(function(stack) {
+              return e("div", {key:stack.title, style:{background:stack.bg, border:"1px solid "+stack.color+"33", borderRadius:12, padding:"14px 18px"}},
+                e("div", {style:{fontSize:14, fontWeight:600, color:stack.color, marginBottom:10}}, stack.title),
+                stack.items.map(function(item, i) {
+                  return e("div", {key:i, style:{fontSize:13, color:"#444", padding:"4px 0 4px 12px", borderLeft:"2px solid "+stack.color+"33", marginBottom:3}}, item);
+                })
+              );
+            })
+          ),
+          e("div", {style:{marginTop:16}},
+            e("h4", {style:{fontSize:14, fontWeight:600, marginBottom:8}}, "AWS services for MLE"),
+            e("div", {style:{display:"flex", flexWrap:"wrap", gap:8}},
+              ["S3 (storage)","EC2 (compute)","Lambda (serverless)","ECR (containers)","SageMaker (ML platform)","IAM (security)"].map(function(s, i) {
+                return e("span", {key:i, style:{fontSize:12, padding:"5px 12px", borderRadius:8, background:"#E6F1FB", color:"#185FA5", border:"1px solid #185FA533"}}, s);
+              })
+            )
+          )
+        ) : null,
+
+        // ═══════════════════════════════════════════════════
+        // METRICS CHEAT SHEET SUB-TAB
+        // ═══════════════════════════════════════════════════
+        section === "metrics" ? e("div", null,
+          e("h3", {style:{fontSize:16, fontWeight:600, marginBottom:4}}, "Metrics cheat sheet"),
+          e("p", {style:{fontSize:13, color:"#888", marginBottom:16}}, "Problem \u2192 Metric \u2192 Threshold \u2192 Real-world use case \u2192 Decision rule. Click any category to expand."),
+
+          // ── CLASSIFICATION ──
+          e(Accordion, {title:"Classification metrics", color:"#185FA5", bg:"#E6F1FB", badge:"CLASS"},
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333"}},
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#185FA5", marginBottom:6}}, "Accuracy"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Good:"), e("span", null, "> 0.80 (domain-dependent)"),
+                  e("span", {style:{color:"#888"}}, "Trap:"), e("span", {style:{color:"#993C1D"}}, "NEVER use alone with imbalanced data. A fraud model predicting 'not fraud' for everything gets 99.8% accuracy but catches zero fraud."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Email spam filter at Gmail \u2014 classes are roughly balanced (enough spam vs legit), so accuracy is a reasonable primary metric alongside precision.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#185FA5", marginBottom:6}}, "Precision"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Good:"), e("span", null, "> 0.80"),
+                  e("span", {style:{color:"#888"}}, "Optimize when:"), e("span", null, "False positives are costly \u2014 every wrong alert costs money, trust, or user experience."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Stripe/PayPal fraud flagging \u2014 blocking a legitimate customer\u2019s $5,000 purchase is worse than letting a $20 fraud slip through. High precision = fewer angry customers."),
+                  e("span", {style:{color:"#888"}}, "Also:"), e("span", null, "YouTube content moderation \u2014 wrongly removing a creator\u2019s video (false positive) causes backlash, so precision matters. Recruiting tools \u2014 surfacing unqualified candidates to hiring managers wastes their time.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#185FA5", marginBottom:6}}, "Recall"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Good:"), e("span", null, "> 0.80"),
+                  e("span", {style:{color:"#888"}}, "Optimize when:"), e("span", null, "Missing a positive case is dangerous or very expensive."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Cancer screening at hospitals \u2014 missing a tumor (false negative) can be fatal. You\u2019d rather have extra false alarms than miss one real case. Recall > 0.95 is often the target."),
+                  e("span", {style:{color:"#888"}}, "Also:"), e("span", null, "Airport security threat detection \u2014 missing a real threat is unacceptable. Earthquake early warning systems \u2014 better to over-alert than miss one.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#185FA5", marginBottom:6}}, "F1 Score"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Good:"), e("span", null, "> 0.75"),
+                  e("span", {style:{color:"#888"}}, "Use when:"), e("span", null, "You need balance between precision and recall, and no extreme cost asymmetry exists."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Customer churn prediction at a telecom \u2014 you want to catch churners (recall) but don\u2019t want to waste retention budget on loyal customers (precision). F1 balances both."),
+                  e("span", {style:{color:"#888"}}, "Also:"), e("span", null, "Resume screening for job applications \u2014 don\u2019t miss great candidates, but don\u2019t flood recruiters with bad matches either.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#185FA5", marginBottom:6}}, "ROC-AUC"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Thresholds:"), e("span", null, "0.5 = random guess | > 0.7 = acceptable | > 0.8 = good | > 0.9 = excellent"),
+                  e("span", {style:{color:"#888"}}, "Use when:"), e("span", null, "Comparing classifiers across all possible thresholds. Good for model selection phase."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Credit scoring at a bank \u2014 comparing whether XGBoost or logistic regression separates good/bad borrowers better overall, before you pick the actual approval threshold.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#185FA5", marginBottom:6}}, "PR-AUC (Precision-Recall AUC)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Good:"), e("span", null, "> baseline prevalence rate. > 0.5 is generally strong for imbalanced data."),
+                  e("span", {style:{color:"#888"}}, "Use when:"), e("span", null, "Classes are heavily imbalanced (1% positive). ROC-AUC can look deceptively good on imbalanced data; PR-AUC won\u2019t."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Credit card fraud detection (0.1% fraud rate) \u2014 PR-AUC gives the honest picture. Manufacturing defect detection at a semiconductor fab (< 1% defect rate).")
+                )
+              ),
+              e("div", {style:{padding:"10px 14px", background:"#185FA515", borderRadius:8, fontSize:12, color:"#042C53"}},
+                e("span", {style:{fontWeight:600}}, "Decision rule: "),
+                "If missing positives is dangerous (medical, security) \u2192 optimize recall. If false alarms are costly (fraud flagging, content removal) \u2192 optimize precision. If no extreme asymmetry \u2192 optimize F1 or ROC-AUC. If data is heavily imbalanced \u2192 use PR-AUC over ROC-AUC."
+              )
+            )
+          ),
+
+          // ── REGRESSION ──
+          e(Accordion, {title:"Regression metrics", color:"#0F6E56", bg:"#E1F5EE", badge:"REG"},
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333"}},
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#0F6E56", marginBottom:6}}, "MAE (Mean Absolute Error)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Good:"), e("span", null, "Domain-dependent. Rule of thumb: error < 10% of average target value."),
+                  e("span", {style:{color:"#888"}}, "Use when:"), e("span", null, "You want interpretable average error in the same units as the target."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Zillow\u2019s home price estimates \u2014 'our predictions are off by $15K on average' is easy for a product team to understand. Delivery time prediction at DoorDash \u2014 MAE of 4 minutes means the app is typically 4 min off.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#0F6E56", marginBottom:6}}, "RMSE (Root Mean Squared Error)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Good:"), e("span", null, "Lower than baseline model\u2019s RMSE. Always relative."),
+                  e("span", {style:{color:"#888"}}, "Use when:"), e("span", null, "Large errors are disproportionately bad. RMSE punishes big misses more than MAE."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Electricity demand forecasting for a power grid \u2014 underestimating demand by 500MW is catastrophically worse than being off by 50MW ten times. Revenue forecasting for quarterly earnings \u2014 one massive miss tanks stock price more than many small misses.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#0F6E56", marginBottom:6}}, "R\u00B2 (Coefficient of Determination)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Thresholds:"), e("span", null, "< 0.5 = weak | 0.5\u20130.7 = moderate | > 0.7 = strong | > 0.9 = very strong (rare with real-world noise)"),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Insurance pricing model \u2014 R\u00B2 of 0.6 means the model explains 60% of price variance, remaining 40% is noise/unknown factors. Marketing mix modeling \u2014 how much of sales lift is explained by ad spend across channels.")
+                )
+              ),
+              e("div", {style:{padding:"10px 14px", background:"#0F6E5615", borderRadius:8, fontSize:12, color:"#04342C"}},
+                e("span", {style:{fontWeight:600}}, "Decision rule: "),
+                "Use MAE for stakeholder communication (intuitive). Use RMSE when big errors are catastrophic. Always compare to a naive baseline (predict the mean). If your model doesn\u2019t beat the baseline \u2192 it\u2019s useless."
+              )
+            )
+          ),
+
+          // ── RANKING ──
+          e(Accordion, {title:"Ranking metrics", color:"#534AB7", bg:"#EEEDFE", badge:"RANK"},
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333"}},
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#534AB7", marginBottom:6}}, "NDCG (Normalized Discounted Cumulative Gain)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Thresholds:"), e("span", null, "> 0.7 = good | > 0.85 = excellent"),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Google Search ranking \u2014 measures whether the most relevant results appear at the top. LinkedIn feed ranking \u2014 are the most engaging posts shown first? Spotify\u2019s playlist ordering.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#534AB7", marginBottom:6}}, "MAP (Mean Average Precision)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Thresholds:"), e("span", null, "> 0.5 = good | > 0.7 = strong"),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "E-commerce product search at Amazon \u2014 when a user searches 'wireless headphones', are the relevant products clustered at the top? Legal document retrieval \u2014 finding relevant case law across thousands of precedents.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#534AB7", marginBottom:6}}, "MRR (Mean Reciprocal Rank) / Precision@K"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "MRR:"), e("span", null, "Closer to 1 = better. Measures how high the first correct result appears."),
+                  e("span", {style:{color:"#888"}}, "P@K:"), e("span", null, "> 0.6 = good. What fraction of top-K results are relevant?"),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Voice assistant answers (Siri, Alexa) \u2014 MRR matters because you only get one spoken answer. Ad ranking at Meta/Google \u2014 Precision@3 for the top ad slots that actually get clicked.")
+                )
+              ),
+              e("div", {style:{padding:"10px 14px", background:"#534AB715", borderRadius:8, fontSize:12, color:"#26215C"}},
+                e("span", {style:{fontWeight:600}}, "Decision rule: "),
+                "Business cares about the TOP results, not all results. Use NDCG when relevance has degrees (very relevant > somewhat relevant > irrelevant). Use MAP when relevance is binary (relevant or not). Use MRR when only the first correct answer matters."
+              )
+            )
+          ),
+
+          // ── CLUSTERING ──
+          e(Accordion, {title:"Clustering metrics", color:"#854F0B", bg:"#FAEEDA", badge:"CLUST"},
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333"}},
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#854F0B", marginBottom:6}}, "Silhouette Score"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Thresholds:"), e("span", null, "< 0.25 = weak | 0.25\u20130.5 = reasonable | > 0.5 = strong"),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Spotify grouping listeners into taste clusters for Discover Weekly \u2014 silhouette score tells you if the clusters are meaningfully distinct. Retail customer segmentation at Target \u2014 are 'budget shoppers' and 'premium shoppers' actually separable groups?")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#854F0B", marginBottom:6}}, "Davies-Bouldin Index"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Good:"), e("span", null, "Lower is better. < 1 = good separation."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Market segmentation for an investment firm grouping stocks by behavior pattern. Geographic clustering of delivery zones for logistics optimization at FedEx/UPS.")
+                )
+              ),
+              e("div", {style:{padding:"10px 14px", background:"#854F0B15", borderRadius:8, fontSize:12, color:"#412402"}},
+                e("span", {style:{fontWeight:600}}, "Critical rule: "),
+                "Mathematical metrics alone are NEVER enough for clustering. A silhouette score of 0.7 is meaningless if the clusters don\u2019t map to actionable business segments. Always validate: can a product manager name what each cluster represents and act on it?"
+              )
+            )
+          ),
+
+          // ── TIME SERIES ──
+          e(Accordion, {title:"Time series forecasting metrics", color:"#993C1D", bg:"#FAECE7", badge:"TS"},
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333"}},
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#993C1D", marginBottom:6}}, "MAPE (Mean Absolute Percentage Error)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Thresholds:"), e("span", null, "< 10% = excellent | 10\u201320% = good | > 30% = poor"),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Amazon warehouse demand forecasting \u2014 MAPE < 15% means inventory planning is reliable enough to avoid stockouts without massive overstock. Revenue forecasting for CFO quarterly guidance \u2014 Wall Street expects < 5% miss."),
+                  e("span", {style:{color:"#888"}}, "Trap:"), e("span", {style:{color:"#993C1D"}}, "MAPE explodes when actual values are near zero. Use sMAPE or WAPE instead for products with sparse/intermittent demand.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#993C1D", marginBottom:6}}, "RMSE / MAE for time series"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Good:"), e("span", null, "Must beat naive forecast (predict last period\u2019s value). If it doesn\u2019t \u2192 your model is useless."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Uber surge pricing \u2014 RMSE on ride demand per zone per 15-min block. Energy load forecasting for a utility company \u2014 RMSE determines how much reserve generation capacity to keep online ($$$ per MW).")
+                )
+              ),
+              e("div", {style:{padding:"10px 14px", background:"#993C1D15", borderRadius:8, fontSize:12, color:"#4A1B0C"}},
+                e("span", {style:{fontWeight:600}}, "Decision rules: "),
+                "ALWAYS compare to naive baseline first. Never do random train/test splits \u2014 must respect time order (train on past, test on future). Use MAPE when stakeholders want percentage error. Use RMSE when big misses are costly. Combine both for a complete picture."
+              )
+            )
+          ),
+
+          // ── ANOMALY DETECTION ──
+          e(Accordion, {title:"Anomaly detection metrics", color:"#0F6E56", bg:"#E1F5EE", badge:"ANOM"},
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333"}},
+              e("div", {style:{marginBottom:10}},
+                e("div", {style:{fontSize:12}},
+                  "Uses the same precision/recall/F1 framework as classification, plus alert quality assessment."
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#0F6E56", marginBottom:6}}, "Real-world scenarios and which metric to prioritize"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px", fontSize:12}},
+                  e("div", {style:{padding:"8px 12px", background:"#0F6E5610", borderRadius:8}},
+                    e("div", {style:{fontWeight:600, color:"#0F6E56"}}, "Optimize RECALL"),
+                    e("div", {style:{color:"#444", marginTop:4}}, "Network intrusion detection at a bank \u2014 missing a breach is catastrophic. Nuclear plant sensor monitoring \u2014 better 100 false alarms than 1 missed meltdown signal. AML (anti-money laundering) compliance \u2014 regulators penalize missed suspicious activity.")
+                  ),
+                  e("div", {style:{padding:"8px 12px", background:"#0F6E5610", borderRadius:8}},
+                    e("div", {style:{fontWeight:600, color:"#0F6E56"}}, "Optimize PRECISION"),
+                    e("div", {style:{color:"#444", marginTop:4}}, "E-commerce payment fraud alerts \u2014 blocking legitimate customers costs revenue and trust. Warehouse IoT sensor alerts \u2014 if every false alarm triggers a $500 technician visit, precision is king. SOC (Security Operations Center) alert fatigue \u2014 too many false positives and analysts ignore everything.")
+                  )
+                )
+              ),
+              e("div", {style:{padding:"10px 14px", background:"#0F6E5615", borderRadius:8, fontSize:12, color:"#04342C"}},
+                e("span", {style:{fontWeight:600}}, "ROC-AUC threshold: "),
+                "> 0.8 preferred. In anomaly detection, also measure alert quality in practice: what percentage of alerts an analyst investigates actually turn out to be real anomalies? This is the 'actionable alert rate' and matters more than any offline metric."
+              )
+            )
+          ),
+
+          // ── NLP ──
+          e(Accordion, {title:"NLP metrics", color:"#185FA5", bg:"#E6F1FB", badge:"NLP"},
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333"}},
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#185FA5", marginBottom:6}}, "F1 (for classification / NER)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Good:"), e("span", null, "> 0.80 = strong"),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Sentiment analysis on product reviews at Amazon \u2014 F1 on positive/negative/neutral. NER for extracting company names and dollar amounts from SEC filings. Support ticket routing at Zendesk \u2014 auto-classifying tickets to the right department.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#185FA5", marginBottom:6}}, "BLEU (translation) / ROUGE (summarization)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "BLEU:"), e("span", null, "> 0.3 = acceptable | > 0.5 = strong. Measures n-gram overlap with reference translation."),
+                  e("span", {style:{color:"#888"}}, "ROUGE:"), e("span", null, "> 0.5 = good. Measures overlap between generated and reference summaries."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Google Translate quality scoring. Legal contract summarization \u2014 ROUGE measures if key clauses are captured. Meeting notes generation from transcripts at Otter.ai/Fireflies.")
+                )
+              ),
+              e("div", {style:{padding:"10px 14px", background:"#185FA515", borderRadius:8, fontSize:12, color:"#042C53"}},
+                e("span", {style:{fontWeight:600}}, "Critical rule: "),
+                "ALWAYS combine automated metrics with human evaluation for NLP tasks. BLEU/ROUGE correlate with quality but miss fluency, factuality, and nuance. For LLM outputs specifically, human eval + hallucination rate + task success rate matter more than any automated score."
+              )
+            )
+          ),
+
+          // ── COMPUTER VISION ──
+          e(Accordion, {title:"Computer vision metrics", color:"#534AB7", bg:"#EEEDFE", badge:"CV"},
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333"}},
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#534AB7", marginBottom:6}}, "IoU (Intersection over Union)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Thresholds:"), e("span", null, "> 0.5 = acceptable | > 0.75 = strong"),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Self-driving car object detection (Waymo, Tesla) \u2014 how well does the predicted bounding box overlap the actual pedestrian? Medical image segmentation \u2014 does the predicted tumor boundary match the radiologist\u2019s annotation?")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#534AB7", marginBottom:6}}, "mAP (mean Average Precision)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Thresholds:"), e("span", null, "> 0.5 = acceptable | > 0.75 = strong"),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "COCO benchmark for object detection (YOLO, Faster R-CNN). Warehouse robotics at Amazon \u2014 detecting and localizing packages on conveyor belts. Retail shelf monitoring \u2014 detecting out-of-stock products from camera feeds.")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#534AB7", marginBottom:6}}, "Dice Score (segmentation)"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Good:"), e("span", null, "> 0.80 for medical imaging. Similar to F1 but for pixel-level overlap."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Brain tumor segmentation from MRI scans (U-Net). Satellite imagery \u2014 segmenting buildings, roads, and vegetation for urban planning. Dental X-ray analysis \u2014 segmenting cavities and bone loss.")
+                )
+              )
+            )
+          ),
+
+          // ── GENERATIVE AI ──
+          e(Accordion, {title:"Generative AI / LLM metrics", color:"#993C1D", bg:"#FAECE7", badge:"GEN"},
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333"}},
+              e("div", {style:{display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px", fontSize:12, marginBottom:14}},
+                e("div", {style:{padding:"8px 12px", background:"#993C1D10", borderRadius:8}},
+                  e("div", {style:{fontWeight:600, color:"#993C1D"}}, "ROUGE / BLEU"),
+                  e("div", {style:{color:"#444", marginTop:4}}, "> 0.4 = decent. Automated proxy for generation quality. Use for summarization, translation benchmarks.")
+                ),
+                e("div", {style:{padding:"8px 12px", background:"#993C1D10", borderRadius:8}},
+                  e("div", {style:{fontWeight:600, color:"#993C1D"}}, "Human evaluation"),
+                  e("div", {style:{color:"#444", marginTop:4}}, "THE most important metric. Is the output correct, helpful, and safe? Chatbot Arena uses ELO ratings from pairwise human comparisons.")
+                ),
+                e("div", {style:{padding:"8px 12px", background:"#993C1D10", borderRadius:8}},
+                  e("div", {style:{fontWeight:600, color:"#993C1D"}}, "Hallucination rate"),
+                  e("div", {style:{color:"#444", marginTop:4}}, "Target: < 5\u201310%. Measure by factual verification against source. Critical for legal/medical/financial AI assistants. Retrieval-augmented generation (RAG) reduces this.")
+                ),
+                e("div", {style:{padding:"8px 12px", background:"#993C1D10", borderRadius:8}},
+                  e("div", {style:{fontWeight:600, color:"#993C1D"}}, "Latency + cost"),
+                  e("div", {style:{color:"#444", marginTop:4}}, "Interactive apps: < 1\u20132 seconds. Cost per request must be sustainable. GPT-4 at $0.03/1K tokens vs GPT-3.5 at $0.001 \u2014 10\u201330x difference determines product viability.")
+                )
+              ),
+              e("div", {style:{padding:"10px 14px", background:"#993C1D15", borderRadius:8, fontSize:12, color:"#4A1B0C"}},
+                e("span", {style:{fontWeight:600}}, "Real-world: "),
+                "Customer support chatbot at a bank \u2014 measure task completion rate (did the customer\u2019s issue get resolved?), hallucination rate (did it invent a policy?), and CSAT scores. Code generation (Copilot) \u2014 measure pass@k (does generated code pass test cases?) and acceptance rate. Enterprise doc Q&A \u2014 measure answer faithfulness to source documents."
+              )
+            )
+          ),
+
+          // ── STATISTICAL SIGNIFICANCE ──
+          e(Accordion, {title:"Statistical significance (A/B testing, model comparison)", color:"#854F0B", bg:"#FAEEDA", badge:"STATS"},
+            e("div", {style:{fontSize:13, lineHeight:1.7, color:"#333"}},
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#854F0B", marginBottom:6}}, "p-value"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Thresholds:"), e("span", null, "p < 0.05 \u2192 statistically significant (reject null hypothesis) | p < 0.01 \u2192 very strong evidence | p > 0.05 \u2192 not significant"),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Netflix A/B testing a new recommendation algorithm \u2014 is the 2% lift in engagement real or noise? Uber testing a new surge pricing model \u2014 is the revenue increase statistically significant across cities?")
+                )
+              ),
+              e("div", {style:{marginBottom:14}},
+                e("div", {style:{fontWeight:600, color:"#854F0B", marginBottom:6}}, "Confidence interval"),
+                e("div", {style:{display:"grid", gridTemplateColumns:"100px 1fr", gap:"4px 12px", fontSize:12}},
+                  e("span", {style:{color:"#888"}}, "Rule:"), e("span", null, "Narrower = more reliable. Should NOT cross zero for the effect to be significant."),
+                  e("span", {style:{color:"#888"}}, "Real-world:"), e("span", null, "Drug efficacy trial \u2014 95% CI of [2%, 8%] improvement means you\u2019re confident the drug works. If CI is [-1%, 5%] it crosses zero \u2192 inconclusive. Marketing campaign lift measurement \u2014 'we\u2019re 95% confident the new ad increased conversions by 3\u20137%.'")
+                )
+              ),
+              e("div", {style:{padding:"10px 14px", background:"#854F0B15", borderRadius:8, fontSize:12, color:"#412402"}},
+                e("span", {style:{fontWeight:600}}, "Critical rule: "),
+                "Statistical significance \u2260 business impact. A p-value of 0.001 with a 0.01% improvement is statistically significant but practically useless. Always check EFFECT SIZE alongside p-values. Ask: is the improvement large enough to justify the engineering cost of deploying the new model?"
+              )
+            )
+          ),
+
+          // ── GOLDEN RULES ──
+          e("div", {style:{marginTop:20, marginBottom:8}},
+            e("h3", {style:{fontSize:16, fontWeight:600, marginBottom:12}}, "Golden rules for ML engineers")
+          ),
+          e("div", {style:{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}},
+            [
+              {rule:"Always start with a baseline", detail:"Logistic regression, linear regression, or naive forecast. If your fancy model doesn\u2019t beat it, the model is useless.", icon:"1"},
+              {rule:"Choose metric based on business goal", detail:"Ask the PM: 'Is it worse to miss a fraud or to block a legit customer?' That answer determines precision vs recall.", icon:"2"},
+              {rule:"Never trust accuracy alone", detail:"Especially with imbalanced data. A model that predicts 'no cancer' for everyone gets 99% accuracy on a 1% cancer dataset.", icon:"3"},
+              {rule:"Always check data leakage", detail:"If your model seems too good (99%+ on a hard problem), you probably leaked future information into training data.", icon:"4"},
+              {rule:"Validate on truly unseen data", detail:"Time-based splits for time series. Holdout groups for A/B tests. Your test set must simulate real deployment conditions.", icon:"5"},
+              {rule:"Production > notebook performance", detail:"A model that works in Jupyter but fails in production teaches you nothing. Monitor real-world performance from day one.", icon:"6"},
+              {rule:"Compare to naive/simple model", detail:"If XGBoost gets 82% and logistic regression gets 80%, the simpler model may be better (cheaper, faster, explainable).", icon:"7"},
+              {rule:"Monitoring is part of the job", detail:"Data drift, concept drift, latency spikes, silent failures. The model that worked last month may be wrong today.", icon:"8"}
+            ].map(function(item, i) {
+              return e("div", {key:i, style:{padding:"12px 14px", background:"#f9f9f6", borderRadius:10, border:"1px solid #e8e8e4"}},
+                e("div", {style:{display:"flex", alignItems:"center", gap:8, marginBottom:4}},
+                  e("span", {style:{width:22, height:22, borderRadius:"50%", background:"#1a1a2e", color:"#fff",
+                    display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:600, flexShrink:0}}, item.icon),
+                  e("span", {style:{fontSize:13, fontWeight:600, color:"#1a1a2e"}}, item.rule)
+                ),
+                e("div", {style:{fontSize:12, color:"#666", lineHeight:1.5, paddingLeft:30}}, item.detail)
+              );
+            })
+          ),
+
+          // ── DECISION FLOW ──
+          e("div", {style:{marginTop:20, padding:"16px 20px", background:"#1a1a2e", borderRadius:12, color:"#fff"}},
+            e("div", {style:{fontSize:14, fontWeight:600, marginBottom:12}}, "Quick decision flow: Problem \u2192 Metric \u2192 Model \u2192 Ship"),
+            e("div", {style:{display:"flex", flexWrap:"wrap", gap:8, alignItems:"center", fontSize:12}},
+              ["What\u2019s the problem type?", "\u2192", "What matters most to the business?", "\u2192", "Pick baseline model", "\u2192", "Evaluate with correct metric", "\u2192", "Improve only if needed", "\u2192", "Deploy simple version", "\u2192", "Monitor + iterate"].map(function(s, i) {
+                return s === "\u2192"
+                  ? e("span", {key:i, style:{color:"#666"}}, s)
+                  : e("span", {key:i, style:{padding:"6px 12px", background:"#ffffff15", borderRadius:8, border:"1px solid #ffffff22"}}, s);
+              })
+            )
+          )
+        ) : null,
+
+        e("div", {style:{marginTop:24, padding:"14px 18px", background:"#f5f5f0", borderRadius:12, fontSize:11, color:"#999", lineHeight:1.6}},
+          "Source: Synthesized from ML engineering best practices, Kaggle competition analysis, and industry role definitions. Compiled March 2026."
+        )
+      );
+    }
+
+    var root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(React.createElement(HandbookApp));
+  </script>
+</body>
+</html>
