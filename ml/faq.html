@@ -63,6 +63,7 @@
       "architecture": {label: "Architectures & Design", color: "#185FA5", bg: "#E6F1FB"},
       "models": {label: "Models & Algorithms", color: "#993C1D", bg: "#FAECE7"},
       "practical": {label: "Practical / When to Use", color: "#854F0B", bg: "#FAEEDA"},
+      "code": {label: "Code & Data Shapes", color: "#993556", bg: "#FBEAF0"},
     };
 
     var FAQ_DATA = [
@@ -238,6 +239,123 @@
           "Key insight: LDA is generative (models P(features|class) then uses Bayes\u2019 theorem), while logistic regression is discriminative (models P(class|features) directly). In practice, they often produce nearly identical boundaries on the same data.\n\n" +
           "Use LDA when: classes are roughly Gaussian, small-to-medium dataset, you want dimensionality reduction simultaneously, or need a fast closed-form solution. Common in finance, biometrics, medical diagnostics.\n\n" +
           "Skip it when: data isn\u2019t approximately normal, you have lots of data (tree-based methods win), or you need highly non-linear boundaries."
+      },
+      {
+        id: 16,
+        category: "fundamentals",
+        question: "What is a hyperparameter vs a parameter? What is hyperparameter tuning? Is there 'parameter tuning'?",
+        answer: "Parameters are what the model learns BY ITSELF during training. You never set these manually \u2014 the algorithm figures them out from data. In linear regression: the weights (slope) and bias (intercept). In a neural network: the millions of weight values across layers. When someone says 'GPT-4 has 1.8 trillion parameters' they mean 1.8T learned weight values. Backpropagation adjusts these automatically.\n\n" +
+          "Hyperparameters are what YOU set before training starts. They control HOW the model learns, not WHAT it learns. 'Hyper' literally means 'above' \u2014 they sit above the parameters, governing the learning process.\n\n" +
+          "Examples of hyperparameters:\n" +
+          "\u2022 Learning rate (how big each gradient step is)\n" +
+          "\u2022 Number of hidden layers / neurons per layer\n" +
+          "\u2022 Number of trees in a random forest\n" +
+          "\u2022 Batch size, dropout rate, regularization strength\n" +
+          "\u2022 The 'K' in K-nearest neighbors\n\n" +
+          "Simple rule: if the training algorithm sets it \u2192 parameter. If you set it before clicking 'train' \u2192 hyperparameter.\n\n" +
+          "Hyperparameter tuning is the process of finding the best combination of hyperparameters. Common methods:\n" +
+          "\u2022 Grid search \u2014 try every combination (exhaustive but slow)\n" +
+          "\u2022 Random search \u2014 sample random combos (surprisingly effective, faster)\n" +
+          "\u2022 Bayesian optimization / Optuna \u2014 use past results to intelligently pick next combo (modern default)\n\n" +
+          "Is there 'parameter tuning'? Not as a separate activity \u2014 that\u2019s just called TRAINING. The entire training loop IS parameter tuning. So: training = the algorithm tunes parameters. Hyperparameter tuning = you (or automated search) tune hyperparameters. Two nested loops."
+      },
+      {
+        id: 17,
+        category: "fundamentals",
+        question: "What is an epoch in machine learning?",
+        answer: "An epoch is ONE complete pass through the entire training dataset.\n\n" +
+          "If you have 10,000 training images and your batch size is 100, one epoch = 100 batches = the model sees all 10,000 images exactly once.\n\n" +
+          "Training typically runs for many epochs (e.g., 50-200). Each epoch, the model sees the same data again but with slightly updated weights from the previous epoch, so it learns more each time.\n\n" +
+          "Related terms:\n" +
+          "\u2022 Batch: a small subset of data processed at once (e.g., 32 images). The model updates its weights after each batch.\n" +
+          "\u2022 Iteration / step: processing one batch. If 10,000 images \u00F7 100 batch size = 100 iterations per epoch.\n" +
+          "\u2022 Batch size: how many samples per batch. Larger = faster training, more memory. Smaller = noisier gradients but can generalize better.\n\n" +
+          "How to choose number of epochs:\n" +
+          "\u2022 Too few epochs = underfitting (model hasn\u2019t learned enough)\n" +
+          "\u2022 Too many epochs = overfitting (model memorizes training data, performs poorly on new data)\n" +
+          "\u2022 Solution: early stopping \u2014 monitor validation loss each epoch and stop when it starts increasing (the model is starting to overfit)\n\n" +
+          "Number of epochs is a hyperparameter (you set it before training). The weights learned during each epoch are parameters (the model sets them)."
+      },
+      {
+        id: 18,
+        category: "code",
+        question: "What do tensor/array shapes like (224, 224, 3) mean? What are the standard shapes for images, batches, sequences?",
+        answer: "A shape like (224, 224, 3) describes the DIMENSIONS of a multi-dimensional array (ndarray in NumPy, tensor in PyTorch). Each number is the size along one axis. Think of it as nested containers:\n\n" +
+          "\u2022 1D: (5,) = a list of 5 numbers. Example: [0.2, 0.8, 0.1, 0.5, 0.9]\n" +
+          "\u2022 2D: (3, 4) = a table with 3 rows, 4 columns. Example: a spreadsheet.\n" +
+          "\u2022 3D: (224, 224, 3) = a cube. Example: an image.\n" +
+          "\u2022 4D: (32, 3, 224, 224) = a batch of cubes. Example: 32 images.\n\n" +
+          "STANDARD SHAPES BY DATA TYPE:\n\n" +
+          "Single image:\n" +
+          "\u2022 NumPy/PIL: (height, width, channels) \u2192 (224, 224, 3) for a 224\u00D7224 RGB image. Channels: 3=RGB, 1=grayscale.\n" +
+          "\u2022 PyTorch: (channels, height, width) \u2192 (3, 224, 224). NOTE: PyTorch swaps channels to the front! This catches everyone.\n\n" +
+          "Batch of images:\n" +
+          "\u2022 (batch_size, channels, height, width) \u2192 (32, 3, 224, 224) = 32 RGB images of 224\u00D7224.\n" +
+          "\u2022 This is what a DataLoader produces and what a CNN expects as input.\n\n" +
+          "Tabular data:\n" +
+          "\u2022 (samples, features) \u2192 (1000, 12) = 1000 rows, 12 feature columns. What scikit-learn expects.\n\n" +
+          "Batch of tabular:\n" +
+          "\u2022 (batch_size, features) \u2192 (64, 12) = one batch of 64 samples with 12 features each.\n\n" +
+          "Text / sequences:\n" +
+          "\u2022 (batch, sequence_length) \u2192 (16, 512) = 16 sentences, each 512 tokens. Input to BERT/GPT.\n" +
+          "\u2022 (batch, sequence_length, embedding_dim) \u2192 (16, 512, 768) = after embedding layer. Each token is now a 768-dim vector.\n\n" +
+          "Time series:\n" +
+          "\u2022 (batch, time_steps, features) \u2192 (32, 100, 5) = 32 sequences, 100 time steps, 5 sensor readings per step. Input to LSTM.\n\n" +
+          "Video:\n" +
+          "\u2022 (batch, frames, channels, height, width) \u2192 (8, 30, 3, 224, 224) = 8 videos, 30 frames each.\n\n" +
+          "Histology patches at Waiv:\n" +
+          "\u2022 Single tile: (3, 256, 256) in PyTorch \u2014 one 256\u00D7256 RGB patch.\n" +
+          "\u2022 Batch of tiles: (64, 3, 256, 256) \u2014 64 patches in one batch.\n" +
+          "\u2022 Slide embeddings after feature extraction: (N_tiles, 768) or (N_tiles, 1024) \u2014 each tile is now just a vector."
+      },
+      {
+        id: 19,
+        category: "code",
+        question: "How does array/tensor slicing work? What do [:, :1], [:, 0], [0, :], [-1], etc. mean?",
+        answer: "Array slicing uses the syntax [rows, columns] (or more generally [axis0, axis1, axis2, ...]). The colon : means 'all elements along this axis.' Let\u2019s use a concrete example:\n\n" +
+          "data = a 2D array with shape (5, 3) \u2014 5 rows, 3 columns:\n" +
+          "  [[10, 20, 30],\n" +
+          "   [40, 50, 60],\n" +
+          "   [70, 80, 90],\n" +
+          "   [100,110,120],\n" +
+          "   [130,140,150]]\n\n" +
+          "BASIC SLICING:\n" +
+          "\u2022 data[0] \u2192 [10, 20, 30] \u2014 first row\n" +
+          "\u2022 data[-1] \u2192 [130, 140, 150] \u2014 last row (-1 counts from end)\n" +
+          "\u2022 data[1:3] \u2192 rows 1 and 2 (NOT 3, end is exclusive) \u2192 [[40,50,60],[70,80,90]]\n" +
+          "\u2022 data[:3] \u2192 first 3 rows (0,1,2)\n" +
+          "\u2022 data[2:] \u2192 everything from row 2 onward\n\n" +
+          "TWO-AXIS SLICING [rows, columns]:\n" +
+          "\u2022 data[:, 0] \u2192 [10, 40, 70, 100, 130] \u2014 ALL rows, column 0 only. This SELECTS a column, returns 1D.\n" +
+          "\u2022 data[:, :1] \u2192 [[10],[40],[70],[100],[130]] \u2014 ALL rows, columns up to (not including) 1. This SLICES, keeps 2D shape!\n\n" +
+          "KEY TRAP: data[:, 0] vs data[:, :1]\n" +
+          "\u2022 data[:, 0] gives shape (5,) \u2014 1D array (the dimension is REMOVED)\n" +
+          "\u2022 data[:, :1] gives shape (5, 1) \u2014 2D array (the dimension is KEPT)\n" +
+          "This matters because some functions expect 2D input. Use :1 to preserve dimensions.\n\n" +
+          "MORE EXAMPLES:\n" +
+          "\u2022 data[0, :] \u2192 [10, 20, 30] \u2014 row 0, all columns (same as data[0])\n" +
+          "\u2022 data[:, -1] \u2192 [30, 60, 90, 120, 150] \u2014 all rows, last column\n" +
+          "\u2022 data[:, 0:2] \u2192 all rows, columns 0 and 1 (first two columns)\n" +
+          "\u2022 data[::2] \u2192 every 2nd row \u2192 rows 0, 2, 4\n" +
+          "\u2022 data[::-1] \u2192 all rows reversed (bottom to top)\n" +
+          "\u2022 data[1:4, 0:2] \u2192 rows 1-3, columns 0-1 (a rectangular sub-block)\n\n" +
+          "3D EXAMPLE (images):\n" +
+          "img has shape (224, 224, 3) \u2014 height, width, RGB channels\n" +
+          "\u2022 img[:, :, 0] \u2192 shape (224, 224) \u2014 just the Red channel\n" +
+          "\u2022 img[:, :, :1] \u2192 shape (224, 224, 1) \u2014 Red channel, kept as 3D\n" +
+          "\u2022 img[100:200, 50:150, :] \u2192 a 100\u00D7100 crop from the middle, all channels\n" +
+          "\u2022 img[0, 0, :] \u2192 [R, G, B] values of the top-left pixel\n\n" +
+          "4D EXAMPLE (batch of images):\n" +
+          "batch has shape (32, 3, 224, 224) \u2014 32 images in PyTorch format\n" +
+          "\u2022 batch[0] \u2192 shape (3, 224, 224) \u2014 first image\n" +
+          "\u2022 batch[:, 0, :, :] \u2192 shape (32, 224, 224) \u2014 Red channel of ALL images\n" +
+          "\u2022 batch[0:8] \u2192 shape (8, 3, 224, 224) \u2014 first 8 images\n\n" +
+          "BOOLEAN INDEXING (filtering):\n" +
+          "\u2022 data[data > 50] \u2192 [60, 70, 80, 90, 100, 110, 120, 130, 140, 150] \u2014 all values > 50, flattened\n" +
+          "\u2022 labels == 1 creates a boolean mask, then data[labels == 1] selects only rows where label is 1\n\n" +
+          "COMMON GOTCHA \u2014 ... (ellipsis):\n" +
+          "\u2022 data[..., 0] means 'all other dimensions, then index 0 on the last axis'\n" +
+          "\u2022 Useful when you don\u2019t know how many dimensions there are. batch[..., :100, :100] crops all images to 100\u00D7100 regardless of batch/channel dimensions."
       }
     ];
 
