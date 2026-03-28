@@ -64,6 +64,7 @@
       "models": {label: "Models & Algorithms", color: "#993C1D", bg: "#FAECE7"},
       "practical": {label: "Practical / When to Use", color: "#854F0B", bg: "#FAEEDA"},
       "code": {label: "Code & Data Shapes", color: "#993556", bg: "#FBEAF0"},
+      "debugging": {label: "Debugging & Testing", color: "#639922", bg: "#EAF3DE"},
     };
 
     var FAQ_DATA = [
@@ -356,6 +357,87 @@
           "COMMON GOTCHA \u2014 ... (ellipsis):\n" +
           "\u2022 data[..., 0] means 'all other dimensions, then index 0 on the last axis'\n" +
           "\u2022 Useful when you don\u2019t know how many dimensions there are. batch[..., :100, :100] crops all images to 100\u00D7100 regardless of batch/channel dimensions."
+      },
+      {
+        id: 20,
+        category: "debugging",
+        question: "How does debugging in ML engineering differ from normal backend/software engineering debugging?",
+        answer: "The core instinct is the same \u2014 inspect state, narrow down where it breaks, fix the root cause. But the tools and what you look for are completely different.\n\n" +
+          "IN BACKEND ENGINEERING:\n" +
+          "You debug control flow and data correctness. Did this function get called? Did this value come through as expected? Is this object null? Your tools: breakpoints in an IDE, console.log/print, stack traces, logging with severity levels. The data you inspect is usually small \u2014 a string, an integer, a JSON object. You can read it in full.\n\n" +
+          "IN ML ENGINEERING:\n" +
+          "You debug shape, dtype, value range, and distribution. The data is never small. A single tensor might have 50,000 rows and 2,048 columns. You cannot and would never want to read it in full. What you care about is its statistical and structural properties.\n\n" +
+          "The equivalent of a breakpoint in ML is this pattern:\n\n" +
+          "  arr = np.load('file.npy')\n" +
+          "  print(arr.shape)              # (351, 2051) \u2014 is this what I expected?\n" +
+          "  print(arr.dtype)              # float64 \u2014 should this be float32?\n" +
+          "  print(arr.min(), arr.max())   # any extreme values? any inf or nan?\n" +
+          "  print(np.isnan(arr).any())    # False \u2014 good, no corrupted values\n\n" +
+          "That four-line block tells you more about what is in that array than reading a thousand individual values would.\n\n" +
+          "WHAT TO CHECK AT EACH LAYER:\n\n" +
+          "When loading data:\n" +
+          "\u2022 shape \u2014 is it (n_tiles, 2048) or something unexpected?\n" +
+          "\u2022 peek at first few rows \u2014 arr[:3] \u2014 are values reasonable?\n" +
+          "\u2022 mean of features \u2014 are they centred around 0 or wildly off?\n\n" +
+          "After preprocessing (Dataset.__getitem__):\n" +
+          "\u2022 features.shape \u2014 did stripping/transform work?\n" +
+          "\u2022 features.dtype \u2014 expect torch.float32, not float64\n" +
+          "\u2022 label value and dtype \u2014 expect tensor(0.) or tensor(1.) as float32\n\n" +
+          "Inside model forward pass (where most ML bugs hide):\n" +
+          "\u2022 print input shape at entry \u2014 (n_tiles, 2048)\n" +
+          "\u2022 print shape after each operation \u2014 find where it diverges from expected\n" +
+          "\u2022 print value ranges of intermediate scores \u2014 any inf or nan?\n" +
+          "\u2022 print final output \u2014 should be a single number, not a vector\n\n" +
+          "During training (watching the loss):\n" +
+          "\u2022 loss.item() each step \u2014 should decrease over time\n" +
+          "\u2022 if nan \u2192 data problem (log of zero, division by zero, extreme values)\n" +
+          "\u2022 if it never moves \u2192 learning rate wrong, or forgot loss.backward()\n" +
+          "\u2022 if it explodes to 1000+ \u2192 gradient overflow\n\n" +
+          "THE HONEST SUMMARY:\n" +
+          "Backend debugging asks: did the right thing happen?\n" +
+          "ML debugging asks: does the data have the right shape, type, and statistical properties at every step?\n" +
+          "shape, dtype, min/max, isnan, and mean are your breakpoints."
+      },
+      {
+        id: 21,
+        category: "debugging",
+        question: "What are the most common ML bugs and how do you spot and fix them?",
+        answer: "THE MOST COMMON ML BUGS:\n\n" +
+          "1. NaN in the loss\n" +
+          "Symptom: loss prints as nan, model produces garbage.\n" +
+          "Cause: log of zero, division by zero, or extreme feature values somewhere in the pipeline.\n" +
+          "Fix: add print(torch.isnan(features).any()) before the forward pass to isolate which sample is causing it. Use torch.autograd.set_detect_anomaly(True) at the top of your script \u2014 PyTorch will throw a detailed error at the exact operation that produced the NaN, instead of letting it silently propagate.\n\n" +
+          "2. Wrong shape entering a layer\n" +
+          "Symptom: RuntimeError: mat1 and mat2 shapes cannot be multiplied.\n" +
+          "Cause: a tensor arrived at a linear layer with wrong dimensions. The most common crash in ML.\n" +
+          "Fix: add shape prints before and after every operation until you find where the shape diverged from expected. Then trace back to the transform or operation that broke it.\n\n" +
+          "3. Loss not moving (model not learning)\n" +
+          "Symptom: loss stays at the same value epoch after epoch.\n" +
+          "Causes (check in this order):\n" +
+          "\u2022 Forgot loss.backward() \u2014 gradients never computed\n" +
+          "\u2022 Forgot optimizer.step() \u2014 weights never updated\n" +
+          "\u2022 Model is in eval() mode during training \u2014 dropout/batchnorm disabled\n" +
+          "\u2022 Learning rate too small \u2014 steps are negligible\n" +
+          "\u2022 Labels are all the same class \u2014 data loading bug\n\n" +
+          "4. Predictions are all the same value\n" +
+          "Symptom: every input gets prediction of 0.5 (or some constant).\n" +
+          "Cause: model collapsed \u2014 never learned anything meaningful. Often caused by a data bug where all labels look the same from the model\u2019s perspective, or the model architecture bottleneck is too narrow.\n\n" +
+          "5. Training loss is great but test performance is terrible\n" +
+          "Symptom: 99% train accuracy, 55% test accuracy.\n" +
+          "Cause: overfitting or data leakage. The model memorized the training data.\n" +
+          "Fix: add regularization (dropout, weight decay), reduce model size, get more data, or check for data leakage (future information leaking into training set).\n\n" +
+          "ML-SPECIFIC DEBUGGING TOOLS:\n\n" +
+          "\u2022 torch.autograd.set_detect_anomaly(True) \u2014 stops at the exact operation that produces NaN. Insert once at top of script. Essential.\n\n" +
+          "\u2022 Tensor assertions as inline guards:\n" +
+          "  assert features.shape[1] == 2048, f'Expected 2048, got {features.shape[1]}'\n" +
+          "  assert not torch.isnan(features).any(), 'NaN in features'\n" +
+          "  assert label.dtype == torch.float32, f'Wrong dtype: {label.dtype}'\n" +
+          "These turn debug prints into permanent safety checks that catch regressions.\n\n" +
+          "\u2022 Loss curve logging \u2014 instead of printing every loss value, collect them and plot. A loss that decreases smoothly is healthy. Oscillating = learning rate too high. Plateau = learning rate too low or model capacity maxed. Explosion = gradient overflow. In production use Weights & Biases or MLflow. In a test/assessment, saving to a list and printing a summary per epoch works.\n\n" +
+          "\u2022 Gradient checking \u2014 after loss.backward(), check if gradients exist:\n" +
+          "  for name, p in model.named_parameters():\n" +
+          "      if p.grad is None: print(f'No gradient for {name}')\n" +
+          "  This catches disconnected layers that aren\u2019t learning."
       }
     ];
 
