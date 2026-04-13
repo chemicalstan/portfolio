@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ML World Map — Kingsley's Portfolio</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #fafafa;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+    nav {
+      background: #1a1a2e;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    nav a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: #fff; }
+    nav .brand {
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      margin-right: auto;
+    }
+    #root {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">Kingsley's Portfolio</span>
+    <a href="../../index.html">&larr; Back to Portfolio</a>
+  </nav>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+  <script>
+    // Alias React hooks for the component
+    const { useState, useMemo } = React;
+
+    // ─── DATA ───────────────────────────────────────────────
+    const DATA = [
+      // === ALGORITHMS ===
+      {id:"gd",abbr:"GD",name:"Gradient Descent",type:"algorithm",family:"Optimization",year:1847,
+       desc:"Iteratively adjust parameters in direction of steepest loss reduction. Foundation of all neural network training.",
+       bestFor:"Training any differentiable model",inputType:"Any",compute:"Low",interpret:"N/A",
+       paradigm:"Core technique",keyInsight:"Step size (learning rate) controls convergence speed vs stability",
+       variants:"SGD, Adam, AdaGrad, RMSProp",usedBy:"Every neural network, logistic regression"},
+      {id:"bp",abbr:"BP",name:"Backpropagation",type:"algorithm",family:"Optimization",year:1986,
+       desc:"Chain rule applied backwards through network layers to compute gradients for each parameter efficiently.",
+       bestFor:"Training neural networks",inputType:"Any",compute:"Low-Med",interpret:"N/A",
+       paradigm:"Core technique",keyInsight:"Computes all gradients in one backward pass via chain rule",
+       variants:"BPTT (through time for RNNs)",usedBy:"MLP, CNN, RNN, LSTM, Transformer, all NNs"},
+      {id:"att",abbr:"Attn",name:"Attention Mechanism",type:"algorithm",family:"Sequence processing",year:2014,
+       desc:"Dynamically weight which inputs matter most for each output. Self-attention: every token attends to every other.",
+       bestFor:"Capturing long-range dependencies",inputType:"Sequences",compute:"Medium",interpret:"Medium",
+       paradigm:"Core technique",keyInsight:"Attention(Q,K,V) = softmax(QK^T / sqrt(d)) * V",
+       variants:"Multi-head, cross-attention, grouped-query, flash attention",usedBy:"Transformer, ViT, CLIP, GPT, BERT"},
+      {id:"bayes",abbr:"Bayes",name:"Bayes' Theorem",type:"algorithm",family:"Probabilistic",year:1763,
+       desc:"P(class|data) proportional to P(data|class) * P(class). Updates beliefs given evidence.",
+       bestFor:"Probabilistic classification",inputType:"Any",compute:"Very low",interpret:"High",
+       paradigm:"Core technique",keyInsight:"Prior beliefs + evidence = posterior probability",
+       variants:"MAP estimation, Bayesian inference",usedBy:"Naive Bayes, Bayesian networks"},
+      {id:"rl_algo",abbr:"RL",name:"Reinforcement Learning Algorithms",type:"algorithm",family:"RL",year:1992,
+       desc:"Agent learns by trial/error with rewards. Q-learning (value), REINFORCE (policy), PPO (actor-critic).",
+       bestFor:"Sequential decision-making, game AI, LLM alignment (RLHF)",inputType:"State-action pairs",compute:"Med-High",interpret:"Low",
+       paradigm:"Reinforcement",keyInsight:"PPO's clipped objective = stable training. Used for ChatGPT/Claude RLHF.",
+       variants:"Q-Learning, DQN, PPO, GRPO, DPO, SAC, A3C",usedBy:"AlphaGo, ChatGPT alignment, robotics"},
+      {id:"contrast",abbr:"CL",name:"Contrastive Learning",type:"algorithm",family:"Self-supervised",year:2020,
+       desc:"Pull matched pairs close in embedding space, push unmatched apart. Learns representations without labels.",
+       bestFor:"Learning visual/multimodal representations",inputType:"Pairs (image-text, augmented views)",compute:"High",interpret:"Medium",
+       paradigm:"Self-supervised",keyInsight:"InfoNCE loss creates shared embedding space across modalities",
+       variants:"SimCLR, MoCo, BYOL, DINO",usedBy:"CLIP, DINOv2, SimCLR"},
+
+      // === ARCHITECTURES ===
+      {id:"mlp",abbr:"MLP",name:"Multi-Layer Perceptron",type:"architecture",family:"Feedforward NN",year:1986,
+       desc:"Stacked fully-connected layers with non-linear activations. The fundamental neural network blueprint.",
+       bestFor:"Tabular data, function approximation",inputType:"Tabular, structured",compute:"Low-Med",interpret:"Medium",
+       paradigm:"Supervised",keyInsight:"Universal approximation theorem: 1 hidden layer can approximate any function",
+       variants:"RealMLP, MLP-Mixer",usedBy:"FFN layers inside every Transformer"},
+      {id:"cnn",abbr:"CNN",name:"Convolutional Neural Network",type:"architecture",family:"Spatial NN",year:1998,
+       desc:"Learnable filters slide across input detecting local spatial patterns. Weight sharing reduces parameters dramatically.",
+       bestFor:"Images, video, audio spectrograms, any grid data",inputType:"Images, grids",compute:"Med-High",interpret:"Low-Med",
+       paradigm:"Supervised",keyInsight:"Inductive bias: local patterns + translation invariance",
+       variants:"See CNN models below",usedBy:"ResNet, VGG, EfficientNet, ConvNeXt, U-Net, YOLO"},
+      {id:"rnn",abbr:"RNN",name:"Recurrent Neural Network",type:"architecture",family:"Sequential NN",year:1990,
+       desc:"Hidden state fed back as input at each time step. Processes sequences one token at a time, maintaining memory.",
+       bestFor:"Short sequences (mostly historical now)",inputType:"Sequences",compute:"Low-Med",interpret:"Medium",
+       paradigm:"Supervised",keyInsight:"h_t = f(W*h_{t-1} + W*x_t). Vanishing gradient limits to ~10-20 steps.",
+       variants:"Bidirectional RNN, deep RNN",usedBy:"Largely replaced by LSTM then Transformer"},
+      {id:"lstm",abbr:"LSTM",name:"Long Short-Term Memory",type:"architecture",family:"Gated recurrent",year:1997,
+       desc:"RNN with 3 gates (forget, input, output) + cell state conveyor belt. Solves vanishing gradient for long sequences.",
+       bestFor:"Time series, streaming/edge, financial sequences",inputType:"Sequences, time series",compute:"Medium",interpret:"Low-Med",
+       paradigm:"Supervised",keyInsight:"Cell state = separate memory highway bypassing gradient degradation",
+       variants:"GRU (simpler, 2 gates, ~25% fewer params), peephole LSTM",usedBy:"Still used in real-time/edge applications"},
+      {id:"transformer",abbr:"TF",name:"Transformer",type:"architecture",family:"Attention-based",year:2017,
+       desc:"Parallel self-attention over all tokens + positional encoding + residual connections. THE architecture of modern AI.",
+       bestFor:"Text, images, audio, protein, code \u2014 nearly everything",inputType:"Any tokenizable data",compute:"Med-Very High",interpret:"Low",
+       paradigm:"Self-supervised",keyInsight:"Attention replaces recurrence: all tokens see all tokens in parallel",
+       variants:"Encoder-only (BERT), decoder-only (GPT), encoder-decoder (T5)",usedBy:"GPT-4, Claude, Gemini, BERT, ViT, Whisper, AlphaFold"},
+      {id:"ae",abbr:"AE",name:"Autoencoder / VAE",type:"architecture",family:"Generative",year:2006,
+       desc:"Encoder compresses to latent space, decoder reconstructs. VAE adds probabilistic sampling for generation.",
+       bestFor:"Anomaly detection, representation learning, drug discovery",inputType:"Any",compute:"Low-Med",interpret:"Med-High",
+       paradigm:"Unsupervised",keyInsight:"VAE's reparameterization trick: z = \u03BC + \u03C3*\u03B5 makes latent space continuous & generative",
+       variants:"VAE, \u03B2-VAE, VQ-VAE (used in DALL-E)",usedBy:"Latent diffusion's encoder, anomaly detection systems"},
+      {id:"gan",abbr:"GAN",name:"Generative Adversarial Network",type:"architecture",family:"Generative",year:2014,
+       desc:"Generator vs Discriminator competition. Generator creates fakes, discriminator detects them, both improve.",
+       bestFor:"Image generation (historical), super-resolution, style transfer",inputType:"Noise \u2192 images",compute:"Med-High",interpret:"Low",
+       paradigm:"Unsupervised",keyInsight:"Adversarial min-max game converges to generator matching data distribution",
+       variants:"StyleGAN, CycleGAN, ESRGAN, Pix2Pix",usedBy:"Largely superseded by diffusion for new projects"},
+      {id:"diffusion",abbr:"Diff",name:"Diffusion Model",type:"architecture",family:"Generative",year:2020,
+       desc:"Forward: add noise over T steps. Reverse: train U-Net to denoise step by step. Latent diffusion operates in compressed space.",
+       bestFor:"Image generation (SOTA), video, 3D, molecular design",inputType:"Text prompts \u2192 images/video",compute:"High",interpret:"Low",
+       paradigm:"Self-supervised",keyInsight:"Iterative denoising avoids GAN instability and VAE blurriness",
+       variants:"DDPM, LDM, Consistency Models, Flow Matching",usedBy:"Stable Diffusion, DALL-E 3, Midjourney, Sora"},
+      {id:"vit",abbr:"ViT",name:"Vision Transformer",type:"architecture",family:"Vision",year:2020,
+       desc:"Split image into patches, embed as tokens, process through standard Transformer encoder. No convolutions.",
+       bestFor:"Large-scale image tasks with abundant data",inputType:"Images (as patch tokens)",compute:"High",interpret:"Medium",
+       paradigm:"Supervised / Self-supervised",keyInsight:"An image is worth 16x16 words \u2014 patches = tokens",
+       variants:"DeiT, Swin Transformer, DINOv2, BEiT",usedBy:"CLIP's image encoder, DINOv2, medical imaging SOTA"},
+      {id:"gnn",abbr:"GNN",name:"Graph Neural Network",type:"architecture",family:"Graph",year:2017,
+       desc:"Nodes aggregate information from neighbors via message passing. Captures relational structure between entities.",
+       bestFor:"Molecules, social networks, fraud detection, recommendations",inputType:"Graph-structured data",compute:"Medium",interpret:"Medium",
+       paradigm:"Semi-supervised",keyInsight:"Message passing: node updates by aggregating neighbor representations",
+       variants:"GCN, GAT (attention), GraphSAGE (inductive)",usedBy:"AlphaFold, drug discovery, Pinterest recommendations"},
+      {id:"moe",abbr:"MoE",name:"Mixture of Experts",type:"architecture",family:"Sparse scaling",year:2017,
+       desc:"Multiple expert sub-networks + learned router selecting subset per token. Total params >> active params per inference.",
+       bestFor:"Scaling LLMs efficiently \u2014 more capacity, same inference cost",inputType:"Text (LLM layer)",compute:"Very High",interpret:"Low",
+       paradigm:"Self-supervised",keyInsight:"Decouple model capacity (total params) from inference cost (active params)",
+       variants:"Top-2, top-k routing, expert parallelism",usedBy:"Mixtral, DeepSeek-V3, GPT-4 (rumored), Gemini"},
+      {id:"ssm",abbr:"SSM",name:"State Space Model / Mamba",type:"architecture",family:"Sequence (linear)",year:2023,
+       desc:"Based on continuous state-space equations. Linear O(N) complexity enables million-token sequences. Mamba adds input-dependent selection.",
+       bestFor:"Very long sequences, DNA, audio, efficient inference",inputType:"Long sequences",compute:"Med-High",interpret:"Low",
+       paradigm:"Self-supervised",keyInsight:"Linear complexity replaces O(n\u00B2) attention. 5x inference throughput.",
+       variants:"S4, Mamba, Mamba-2, Jamba (hybrid)",usedBy:"Jamba, emerging hybrid Transformer-Mamba models"},
+
+      // === MODELS ===
+      {id:"linreg",abbr:"LinR",name:"Linear Regression",type:"model",family:"Classical ML",year:1805,
+       desc:"y = Wx + b. Fit line/plane to data minimizing squared errors. Closed-form solution or gradient descent.",
+       bestFor:"Regression baseline, interpretable predictions, feature effect analysis",inputType:"Tabular (numerical)",compute:"Low",interpret:"High",
+       paradigm:"Supervised",keyInsight:"Coefficients directly interpretable as marginal effects. Always run first.",
+       variants:"Ridge (L2), Lasso (L1), ElasticNet",usedBy:"Every ML practitioner's first baseline"},
+      {id:"logreg",abbr:"LogR",name:"Logistic Regression",type:"model",family:"Classical ML",year:1958,
+       desc:"Sigmoid on linear combination, optimized via maximum likelihood. Outputs calibrated probabilities, not just labels.",
+       bestFor:"Binary classification baseline, credit scoring, medical screening",inputType:"Tabular",compute:"Low",interpret:"High",
+       paradigm:"Supervised",keyInsight:"Well-calibrated probabilities enable adjustable decision thresholds",
+       variants:"Multinomial (multi-class), regularized (L1/L2)",usedBy:"Credit risk, ad click prediction, medical triage"},
+      {id:"dt",abbr:"DT",name:"Decision Tree (CART)",type:"model",family:"Classical ML",year:1984,
+       desc:"Recursive binary splits using Gini impurity or info gain. Most interpretable non-linear model \u2014 printable rules.",
+       bestFor:"Explainability requirements, EDA, compliance-heavy domains",inputType:"Tabular (mixed types)",compute:"Low",interpret:"High",
+       paradigm:"Supervised",keyInsight:"Handles mixed types natively, no scaling needed. Fatal flaw: high variance (overfits).",
+       variants:"C4.5, CART, ID3",usedBy:"Building block of Random Forest and all boosting methods"},
+      {id:"rf",abbr:"RF",name:"Random Forest",type:"model",family:"Ensemble (bagging)",year:2001,
+       desc:"Bootstrap aggregation of hundreds of decorrelated trees. Each tree sees random data subset + random feature subset.",
+       bestFor:"Strong tabular baseline with zero tuning, feature importance",inputType:"Tabular",compute:"Low-Med",interpret:"Medium",
+       paradigm:"Supervised",keyInsight:"Averaging many weak trees \u2192 strong, stable predictions. Almost no hyperparameter tuning needed.",
+       variants:"ExtraTrees, Extremely Randomized Trees",usedBy:"scikit-learn default, Spark MLlib, production ML"},
+      {id:"gbdt",abbr:"GBT",name:"XGBoost / LightGBM / CatBoost",type:"model",family:"Ensemble (boosting)",year:2014,
+       desc:"Sequential trees each fitting residual errors of ensemble. Gradient descent in function space. KING of tabular data.",
+       bestFor:"Any tabular prediction task. Most Kaggle wins. Production workhorse.",inputType:"Tabular",compute:"Medium",interpret:"Low-Med",
+       paradigm:"Supervised",keyInsight:"XGB=fine control, LightGBM=fastest (7x), CatBoost=best on categorical features natively",
+       variants:"XGBoost, LightGBM, CatBoost",usedBy:"14 Kaggle 2024 wins each (XGB/LGBM), fraud detection, pricing, risk"},
+      {id:"svm",abbr:"SVM",name:"Support Vector Machine",type:"model",family:"Classical ML",year:1995,
+       desc:"Find maximum-margin hyperplane. Kernel trick (RBF, polynomial) enables non-linear separation in higher dimensions.",
+       bestFor:"High-dimensional sparse data, small datasets, bioinformatics",inputType:"Tabular, high-dim sparse",compute:"Medium",interpret:"Low-Med",
+       paradigm:"Supervised",keyInsight:"Kernel trick = implicit high-dimensional mapping. O(n\u00B2-n\u00B3) = avoid above 100K samples.",
+       variants:"Linear SVM (LIBLINEAR), RBF kernel, SVR (regression)",usedBy:"Text classification (pre-BERT), protein classification"},
+      {id:"knn",abbr:"KNN",name:"K-Nearest Neighbors",type:"model",family:"Instance-based",year:1967,
+       desc:"No training \u2014 stores dataset. At prediction: compute distance to all points, vote among K nearest. Lazy learning.",
+       bestFor:"Quick baselines, anomaly detection, missing value imputation",inputType:"Small tabular (< 20 features)",compute:"Low train / High infer",interpret:"Medium",
+       paradigm:"Supervised",keyInsight:"Curse of dimensionality kills it above ~20 features. Use FAISS for large-scale approximate NN.",
+       variants:"Weighted KNN, Ball Tree, KD-Tree",usedBy:"KNNImputer, recommendation prototypes"},
+      {id:"nb",abbr:"NB",name:"Naive Bayes",type:"model",family:"Probabilistic",year:1960,
+       desc:"Bayes' theorem + conditional independence assumption. Fastest classifier. Canonical spam filter algorithm.",
+       bestFor:"Text classification, spam filtering, real-time classification",inputType:"Text (word counts), sparse features",compute:"Very Low",interpret:"High",
+       paradigm:"Supervised",keyInsight:"Independence assumption is provably false but works surprisingly well in practice",
+       variants:"Gaussian, Multinomial, Bernoulli",usedBy:"Spam filters, document classification baselines"},
+      {id:"kmeans",abbr:"KM",name:"K-Means Clustering",type:"model",family:"Clustering",year:1957,
+       desc:"Assign points to nearest centroid, recompute centroids, repeat. Minimizes within-cluster sum of squares.",
+       bestFor:"Customer segmentation, data exploration, feature engineering",inputType:"Numerical tabular",compute:"Low",interpret:"High",
+       paradigm:"Unsupervised",keyInsight:"Assumes spherical clusters. Use DBSCAN for arbitrary shapes, GMM for overlapping.",
+       variants:"MiniBatch K-Means, K-Medoids, K-Means++",usedBy:"Customer segmentation, image compression, preprocessing"},
+      {id:"pca",abbr:"PCA",name:"Principal Component Analysis",type:"model",family:"Dim. reduction",year:1901,
+       desc:"Eigendecomposition of covariance matrix to find axes of maximum variance. Linear dimensionality reduction.",
+       bestFor:"Preprocessing for KNN/SVM, noise reduction, visualization",inputType:"Numerical",compute:"Low",interpret:"Medium",
+       paradigm:"Unsupervised",keyInsight:"Retain 95-99% variance with far fewer features. Also decorrelates features.",
+       variants:"Kernel PCA, Sparse PCA, Incremental PCA. For visualization: t-SNE, UMAP.",
+       usedBy:"Standard preprocessing, face recognition (eigenfaces)"},
+      {id:"resnet",abbr:"ResNet",name:"ResNet (Residual Network)",type:"model",family:"CNN variant",year:2015,
+       desc:"CNN + skip connections: H(x) = F(x) + x. Enables training 152+ layer networks. Surpassed human-level on ImageNet.",
+       bestFor:"Image classification, transfer learning backbone, medical imaging",inputType:"Images",compute:"Medium",interpret:"Low-Med",
+       paradigm:"Supervised",keyInsight:"Skip connections solve degradation problem \u2014 deeper networks can only improve, not degrade",
+       variants:"ResNet-18/34/50/101/152, ResNeXt, Wide ResNet",usedBy:"Default transfer learning backbone, torchvision"},
+      {id:"effnet",abbr:"EffN",name:"EfficientNet / ConvNeXt",type:"model",family:"CNN variant",year:2019,
+       desc:"EfficientNet: compound scaling of depth/width/resolution. ConvNeXt: modernized ResNet matching Swin Transformer.",
+       bestFor:"Efficient image classification, edge/mobile deployment",inputType:"Images",compute:"Med",interpret:"Low-Med",
+       paradigm:"Supervised",keyInsight:"EfficientNet: better accuracy per FLOP. ConvNeXt: pure CNN matches Transformer performance.",
+       variants:"EfficientNet-B0 to B7, EfficientNetV2, ConvNeXt-T/S/B/L",usedBy:"Google, Meta, Kaggle vision competitions"},
+      {id:"gpt",abbr:"GPT",name:"GPT (1/2/3/4/4o)",type:"model",family:"Decoder LLM",year:2018,
+       desc:"Decoder-only Transformer. Autoregressive next-token prediction. Trained on internet-scale text + RLHF alignment.",
+       bestFor:"Text generation, conversation, code, reasoning, multimodal",inputType:"Text, images, audio (4o)",compute:"Very High",interpret:"Low",
+       paradigm:"Self-sup + RLHF",keyInsight:"Scaling laws: performance improves predictably with compute/data/params",
+       variants:"GPT-1 (117M) \u2192 GPT-4 (~1.8T MoE). o1/o3 = chain-of-thought reasoning.",
+       usedBy:"ChatGPT, GitHub Copilot, Microsoft Copilot"},
+      {id:"bert",abbr:"BERT",name:"BERT / RoBERTa / DeBERTa",type:"model",family:"Encoder LLM",year:2018,
+       desc:"Encoder-only Transformer. Masked language modeling (predict masked tokens). Bidirectional context = better understanding.",
+       bestFor:"Text classification, NER, semantic search, sentiment \u2014 100x cheaper than GPT for NLU",inputType:"Text",compute:"Medium",interpret:"Medium",
+       paradigm:"Self-sup + fine-tune",keyInsight:"Bidirectional pre-training + cheap fine-tuning = production NLU workhorse",
+       variants:"RoBERTa, DeBERTa-v3 (SOTA encoder), DistilBERT (60% smaller, 97% performance)",
+       usedBy:"Google Search, production NLP systems worldwide"},
+      {id:"clip",abbr:"CLIP",name:"CLIP",type:"model",family:"Multimodal",year:2021,
+       desc:"ViT image encoder + Transformer text encoder, trained on 400M image-text pairs via contrastive learning.",
+       bestFor:"Zero-shot image classification, cross-modal search, multimodal backbone",inputType:"Image-text pairs",compute:"High",interpret:"Medium",
+       paradigm:"Self-supervised",keyInsight:"Match images to arbitrary text descriptions \u2192 classify without predefined labels",
+       variants:"OpenCLIP, SigLIP, EVA-CLIP, MetaCLIP",usedBy:"DALL-E 2, Stable Diffusion conditioning, LLaVA, content moderation"},
+      {id:"sd",abbr:"SD",name:"Stable Diffusion / DALL-E / Midjourney",type:"model",family:"Diffusion (trained)",year:2022,
+       desc:"Trained diffusion models for text-to-image generation. Stable Diffusion is open-source; DALL-E and Midjourney are proprietary.",
+       bestFor:"Text-to-image, inpainting, style transfer, concept art",inputType:"Text prompts",compute:"High",interpret:"Low",
+       paradigm:"Self-supervised + guidance",keyInsight:"Latent diffusion (compressed space) makes high-res generation practical",
+       variants:"SD 1.5/2.0/XL/3.0, DALL-E 2/3, Midjourney v6, Flux",usedBy:"Designers, marketing, concept art, game dev"},
+      {id:"stylegan",abbr:"StyG",name:"StyleGAN",type:"model",family:"GAN (trained)",year:2019,
+       desc:"NVIDIA's progressive face generation GAN. Style-based generator with mapping network for disentangled control.",
+       bestFor:"Photorealistic face synthesis, artistic style mixing",inputType:"Noise \u2192 faces/art",compute:"High",interpret:"Low",
+       paradigm:"Unsupervised",keyInsight:"Style mixing at different layers controls coarse-to-fine attributes",
+       variants:"StyleGAN, StyleGAN2, StyleGAN3",usedBy:"This Person Does Not Exist, art generation"},
+      {id:"whisper",abbr:"Wh",name:"Whisper",type:"model",family:"Audio Transformer",year:2022,
+       desc:"OpenAI's encoder-decoder Transformer for speech recognition. Trained on 680K hours of multilingual audio.",
+       bestFor:"Speech-to-text, transcription, translation",inputType:"Audio",compute:"Medium",interpret:"Low",
+       paradigm:"Supervised",keyInsight:"Massive diverse training data \u2192 robust to accents, noise, languages",
+       variants:"Whisper tiny/base/small/medium/large",usedBy:"Transcription services, voice assistants"},
+      {id:"alphafold",abbr:"AF",name:"AlphaFold",type:"model",family:"Scientific AI",year:2020,
+       desc:"DeepMind's protein structure prediction. Transformer + GNN-style reasoning on amino acid relationships.",
+       bestFor:"Protein 3D structure prediction from amino acid sequence",inputType:"Amino acid sequences",compute:"High",interpret:"Medium",
+       paradigm:"Supervised",keyInsight:"Solved the 50-year protein folding problem. 2024 Nobel Prize in Chemistry.",
+       variants:"AlphaFold 2, AlphaFold 3 (protein-ligand)",usedBy:"Drug discovery, biology research worldwide"},
+    ];
+
+    const TYPE_COLORS = {
+      algorithm: {bg:"#EEEDFE",border:"#534AB7",text:"#26215C",label:"Algorithm (recipe)"},
+      architecture: {bg:"#E1F5EE",border:"#0F6E56",text:"#04342C",label:"Architecture (blueprint)"},
+      model: {bg:"#E6F1FB",border:"#185FA5",text:"#042C53",label:"Model (trained product)"},
+    };
+
+    const FAMILY_GROUPS = [
+      {label:"Optimization & Core Techniques",filter:function(d){return d.type==="algorithm"}},
+      {label:"Classical ML Models",filter:function(d){return d.type==="model"&&["Classical ML","Ensemble (bagging)","Ensemble (boosting)","Instance-based","Probabilistic","Clustering","Dim. reduction"].includes(d.family)}},
+      {label:"Neural Network Architectures",filter:function(d){return d.type==="architecture"}},
+      {label:"Deep Learning & Foundation Models",filter:function(d){return d.type==="model"&&!["Classical ML","Ensemble (bagging)","Ensemble (boosting)","Instance-based","Probabilistic","Clustering","Dim. reduction"].includes(d.family)}},
+    ];
+
+    function Card(props) {
+      const item = props.item, selected = props.selected, onClick = props.onClick;
+      const col = TYPE_COLORS[item.type];
+      const isSel = selected && selected.id === item.id;
+      return React.createElement("div", {
+        onClick: function(){ onClick(item); },
+        style: {
+          background: col.bg, border: (isSel?2:1)+"px solid "+(isSel?col.text:col.border),
+          borderRadius:10, padding:"10px 12px", cursor:"pointer", minWidth:120, maxWidth:155,
+          transition:"all 0.15s", transform:isSel?"scale(1.04)":"scale(1)",
+        }
+      },
+        React.createElement("div", {style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}},
+          React.createElement("span", {style:{fontWeight:600,fontSize:16,color:col.text}}, item.abbr),
+          React.createElement("span", {style:{fontSize:10,color:col.border,background:col.border+"18",padding:"1px 6px",borderRadius:8}}, item.type)
+        ),
+        React.createElement("div", {style:{fontWeight:500,fontSize:12,color:col.text,lineHeight:1.3,marginBottom:4}}, item.name),
+        React.createElement("div", {style:{fontSize:10,color:col.text+"BB",lineHeight:1.4}}, item.bestFor ? item.bestFor.substring(0,60)+(item.bestFor.length>60?"...":"") : ""),
+        React.createElement("div", {style:{marginTop:6,display:"flex",gap:4,flexWrap:"wrap"}},
+          React.createElement("span", {style:{fontSize:9,background:col.border+"22",color:col.border,padding:"1px 5px",borderRadius:6}}, item.year),
+          React.createElement("span", {style:{fontSize:9,background:col.border+"22",color:col.border,padding:"1px 5px",borderRadius:6}}, item.compute)
+        )
+      );
+    }
+
+    function DetailPanel(props) {
+      var item = props.item, onClose = props.onClose;
+      if(!item) return null;
+      var col = TYPE_COLORS[item.type];
+      return React.createElement("div", {style:{background:col.bg,border:"1.5px solid "+col.border,borderRadius:14,padding:"20px 24px",marginBottom:16}},
+        React.createElement("div", {style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}},
+          React.createElement("div", null,
+            React.createElement("div", {style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},
+              React.createElement("span", {style:{fontWeight:700,fontSize:28,color:col.text}}, item.abbr),
+              React.createElement("span", {style:{fontSize:12,fontWeight:500,color:"white",background:col.border,padding:"2px 10px",borderRadius:10}}, item.type),
+              React.createElement("span", {style:{fontSize:12,color:col.border}}, item.family+" \u00B7 "+item.year)
+            ),
+            React.createElement("div", {style:{fontWeight:600,fontSize:18,color:col.text}}, item.name)
+          ),
+          React.createElement("button", {onClick:onClose, style:{background:"transparent",border:"1px solid "+col.border,borderRadius:8,padding:"4px 12px",cursor:"pointer",color:col.text,fontSize:13}}, "Close")
+        ),
+        React.createElement("p", {style:{fontSize:14,lineHeight:1.6,color:col.text,margin:"0 0 12px"}}, item.desc),
+        React.createElement("div", {style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px 20px",fontSize:13}},
+          React.createElement("div", null, React.createElement("span", {style:{color:col.text+"88"}}, "Best for: "), React.createElement("span", {style:{color:col.text,fontWeight:500}}, item.bestFor)),
+          React.createElement("div", null, React.createElement("span", {style:{color:col.text+"88"}}, "Input type: "), React.createElement("span", {style:{color:col.text,fontWeight:500}}, item.inputType)),
+          React.createElement("div", null, React.createElement("span", {style:{color:col.text+"88"}}, "Compute: "), React.createElement("span", {style:{color:col.text,fontWeight:500}}, item.compute)),
+          React.createElement("div", null, React.createElement("span", {style:{color:col.text+"88"}}, "Interpretability: "), React.createElement("span", {style:{color:col.text,fontWeight:500}}, item.interpret)),
+          React.createElement("div", null, React.createElement("span", {style:{color:col.text+"88"}}, "Paradigm: "), React.createElement("span", {style:{color:col.text,fontWeight:500}}, item.paradigm)),
+          React.createElement("div", null, React.createElement("span", {style:{color:col.text+"88"}}, "Variants: "), React.createElement("span", {style:{color:col.text,fontWeight:500}}, item.variants))
+        ),
+        React.createElement("div", {style:{marginTop:12,padding:"10px 14px",background:col.border+"15",borderRadius:8,fontSize:13,color:col.text}},
+          React.createElement("span", {style:{fontWeight:600}}, "Key insight: "), item.keyInsight
+        ),
+        item.usedBy ? React.createElement("div", {style:{marginTop:8,fontSize:12,color:col.text+"99"}}, "Used by / powers: "+item.usedBy) : null
+      );
+    }
+
+    function MLWorldMap() {
+      var _sel = useState(null), selected = _sel[0], setSelected = _sel[1];
+      var _srch = useState(""), search = _srch[0], setSearch = _srch[1];
+      var _tf = useState("all"), typeFilter = _tf[0], setTypeFilter = _tf[1];
+
+      var filtered = useMemo(function(){
+        return DATA.filter(function(d) {
+          if (typeFilter !== "all" && d.type !== typeFilter) return false;
+          if (search) {
+            var s = search.toLowerCase();
+            return d.name.toLowerCase().includes(s) || d.abbr.toLowerCase().includes(s) || d.family.toLowerCase().includes(s) || d.desc.toLowerCase().includes(s) || d.bestFor.toLowerCase().includes(s);
+          }
+          return true;
+        });
+      },[search,typeFilter]);
+
+      return React.createElement("div", {style:{fontFamily:"system-ui, -apple-system, sans-serif",maxWidth:900,margin:"0 auto",padding:"8px 0"}},
+        React.createElement("div", {style:{marginBottom:16}},
+          React.createElement("h2", {style:{fontSize:20,fontWeight:600,margin:"0 0 4px",color:"#1a1a2e"}}, "The ML World Map"),
+          React.createElement("p", {style:{fontSize:13,color:"#666",margin:"0 0 12px"}}, "30 essential models, architectures, and algorithms \u2014 click any card for full details"),
+          React.createElement("div", {style:{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center",marginBottom:12}},
+            React.createElement("input", {value:search, onChange:function(e){setSearch(e.target.value)}, placeholder:"Search models, algorithms, architectures...",
+              style:{flex:1,minWidth:200,padding:"8px 12px",borderRadius:8,border:"1px solid #ddd",fontSize:13,background:"transparent",color:"#333"}}),
+            ["all","algorithm","architecture","model"].map(function(t){
+              return React.createElement("button", {key:t, onClick:function(){setTypeFilter(t)}, style:{
+                padding:"6px 14px",borderRadius:8,fontSize:12,fontWeight:500,cursor:"pointer",
+                border:typeFilter===t?"none":"1px solid "+(t==="all"?"#888":(TYPE_COLORS[t]?TYPE_COLORS[t].border:"#888")),
+                background:typeFilter===t?(t==="all"?"#333":(TYPE_COLORS[t]?TYPE_COLORS[t].border:"#333")):"transparent",
+                color:typeFilter===t?"white":(t==="all"?"#888":(TYPE_COLORS[t]?TYPE_COLORS[t].text:"#888")),
+              }}, t==="all"?"All":(TYPE_COLORS[t]?TYPE_COLORS[t].label:t));
+            })
+          ),
+          React.createElement("div", {style:{display:"flex",gap:16,fontSize:11,color:"#888"}},
+            Object.entries(TYPE_COLORS).map(function(entry){
+              var k = entry[0], v = entry[1];
+              return React.createElement("div", {key:k, style:{display:"flex",alignItems:"center",gap:4}},
+                React.createElement("div", {style:{width:10,height:10,borderRadius:3,background:v.bg,border:"1px solid "+v.border}}),
+                v.label
+              );
+            })
+          )
+        ),
+        selected ? React.createElement(DetailPanel, {item:selected, onClose:function(){setSelected(null)}}) : null,
+        FAMILY_GROUPS.map(function(group, gi){
+          var items = filtered.filter(group.filter);
+          if(items.length===0) return null;
+          return React.createElement("div", {key:gi, style:{marginBottom:20}},
+            React.createElement("h3", {style:{fontSize:14,fontWeight:600,color:"#333",margin:"0 0 8px",paddingBottom:6,borderBottom:"1px solid #eee"}}, group.label),
+            React.createElement("div", {style:{display:"flex",flexWrap:"wrap",gap:8}},
+              items.map(function(item){ return React.createElement(Card, {key:item.id, item:item, selected:selected, onClick:setSelected}); })
+            )
+          );
+        }),
+        React.createElement("div", {style:{marginTop:20,padding:"14px 18px",background:"#f5f5f0",borderRadius:12,fontSize:12,lineHeight:1.7,color:"#666"}},
+          React.createElement("span", {style:{fontWeight:600,color:"#333"}}, "Architecture vs Model vs Algorithm: "),
+          "An ", React.createElement("span", {style:{color:"#0F6E56",fontWeight:500}}, "architecture"), " is the structural blueprint (Transformer, CNN, GAN). ",
+          "An ", React.createElement("span", {style:{color:"#534AB7",fontWeight:500}}, "algorithm"), " is the mathematical procedure (backpropagation, attention, gradient descent). ",
+          "A ", React.createElement("span", {style:{color:"#185FA5",fontWeight:500}}, "model"), " is the trained product you actually use (GPT-4, ResNet-50, XGBoost). ",
+          "Architecture + Algorithm + Training Data = Model."
+        )
+      );
+    }
+
+    // Mount the app
+    var root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(React.createElement(MLWorldMap));
+  </script>
+</body>
+</html>
