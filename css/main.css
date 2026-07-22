@@ -2760,3 +2760,60 @@ footer .copyright span:last-child::after {
 }
 
 /*# sourceMappingURL=main.css.map */
+
+/**
+ * 2026 refinements
+ * -------------------------------------------------------------------
+ */
+.timeline-loc {
+	font-size: 1.2rem;
+	color: #888888;
+	margin: 0 0 0.9rem 0;
+	font-family: "poppins-regular", sans-serif;
+}
+.timeline-ico img {
+	border-radius: 50%;
+}
+.timeline-content .timeline-line {
+	margin-top: 0.9rem;
+	margin-bottom: 0;
+}
+#folio-wrapper .item-wrap img {
+	width: 100%;
+	aspect-ratio: 16 / 10;
+	object-fit: cover;
+	border-radius: 10px;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+#folio-wrapper .item-wrap .overlay {
+	border-radius: 10px;
+	transition: opacity 0.2s ease;
+}
+.popup-modal .media img {
+	min-width: 100%;
+	border-radius: 10px 10px 0 0;
+}
+.popup-modal .description-box h4 {
+	margin-bottom: 0.9rem;
+}
+.popup-modal .description-box p {
+	line-height: 1.8;
+}
+.blog-post-excerpt {
+	font-family: "poppins-regular", sans-serif;
+	font-size: 1.4rem;
+	color: #666666;
+	line-height: 1.75;
+	margin-bottom: 2rem;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+.contact-elsewhere a {
+	color: #ffffff;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+.contact-elsewhere a:hover {
+	color: #cc005f;
+}

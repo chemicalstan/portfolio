@@ -1,3 +1,6 @@
 *.pdf
 *.docx
 *.code-workspace
+.claude/
+docs/
+.DS_Store
