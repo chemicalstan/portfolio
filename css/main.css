@@ -2810,10 +2810,3 @@ footer .copyright span:last-child::after {
 	-webkit-box-orient: vertical;
 	overflow: hidden;
 }
-.contact-elsewhere a {
-	color: #ffffff;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-}
-.contact-elsewhere a:hover {
-	color: #cc005f;
-}
