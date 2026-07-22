@@ -1,23 +1,23 @@
 {
-  "updatedAt": "2026-07-22T04:11:19.691560+00:00",
+  "updatedAt": "2026-07-22T04:19:39.106Z",
   "articles": [
     {
       "title": "How I Investigated a Suspicious Interview Assessment and Uncovered a Supply Chain Attack",
       "link": "https://medium.com/@chemicalstan15/how-i-investigated-a-suspicious-interview-assessment-and-uncovered-a-supply-chain-attack-b55d3f7ca20c",
-      "pubDate": "2026-05-14T14:54:50+00:00",
-      "excerpt": "Dissecting how a fake interview repository executes code the moment you clone it I had just finished my Master\u2019s coursework and finally had "
+      "pubDate": "2026-05-14T14:54:50.000Z",
+      "excerpt": "Dissecting how a fake interview repository executes code the moment you clone it I had just finished my Master’s coursework and finally had "
     },
     {
       "title": "Stablecoin Banks vs. Traditional Payment Networks: The Future of Digital Finance",
       "link": "https://medium.com/@chemicalstan15/stablecoin-banks-vs-traditional-payment-networks-the-future-of-digital-finance-14f3becdf73a",
-      "pubDate": "2025-07-25T13:27:22+00:00",
+      "pubDate": "2025-07-25T13:27:22.000Z",
       "excerpt": "When you pay $5 for a cup of coffee with your card, that transaction goes through multiple banks, payment processors, and clearing houses be"
     },
     {
       "title": "Understanding Protocol Buffers: Use Cases, Node.js Setup, and Comparison with JSON",
       "link": "https://medium.com/@chemicalstan15/understanding-protocol-buffers-use-cases-node-js-setup-and-comparison-with-json-255d8597f5f6",
-      "pubDate": "2025-06-24T15:13:26+00:00",
-      "excerpt": "Protocol Buffers (aka Protobuf) are Google\u2019s language-agnostic, platform-neutral mechanism for serializing structured data for ease of trans"
+      "pubDate": "2025-06-24T15:13:26.000Z",
+      "excerpt": "Protocol Buffers (aka Protobuf) are Google’s language-agnostic, platform-neutral mechanism for serializing structured data for ease of trans"
     }
   ]
 }
